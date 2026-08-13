@@ -1,0 +1,12 @@
+[
+  {
+    "id": "a55ca533-4494-42ea-90f3-cc83dd851a06",
+    "name": "Kaizen Competition 2026",
+    "code": "KC2026",
+    "startDate": "2026-08-13T17:30:13.573Z",
+    "days": 2,
+    "hallCount": 10,
+    "deletedHalls": [],
+    "status": "active"
+  }
+]
