@@ -25,15 +25,16 @@ const PORT = process.env.PORT || 4000;
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: (origin, callback) => {
-    const allowedLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/i;
-    if (!origin || allowedLocalhost.test(origin)) {
-      callback(null, true);
-      return;
-    }
+  // origin: (origin, callback) => {
+  //   const allowedLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1):\d+$/i;
+  //   if (!origin || allowedLocalhost.test(origin)) {
+  //     callback(null, true);
+  //     return;
+  //   }
 
-    callback(new Error('Not allowed by CORS'));
-  },
+  //   callback(new Error('Not allowed by CORS'));
+  // },
+  origin: 'https://kaizen-ui.onrender.com',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
