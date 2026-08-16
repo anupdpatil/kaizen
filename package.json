@@ -11,7 +11,8 @@
     "build:backend": "cd backend && npm install",
     "build:frontend": "cd frontend && npm install && npm run build",
     "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install && cd ..",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "docs:sync": "node scripts/update-docs.js"
   },
   "keywords": ["kaizen", "competition", "management"],
   "author": "",

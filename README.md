@@ -2,6 +2,21 @@
 
 A production-ready full-stack web application for managing Kaizen competitions with comprehensive role-based access control, scoring, rankings, and data export capabilities.
 
+## Current Product Stage
+
+This project is currently at V1: the foundation release of the Kaizen competition platform.
+
+### V1 includes
+- Central admin workflow for contests, teams, juries, and hall assignments
+- Jury scoring with 8 criteria and real-time completion tracking
+- Ranking and award logic based on evaluation totals
+- Export and reporting support
+- Local JSON-based persistence and secure authentication
+- Deployment and setup documentation for ongoing operational use
+
+### Future version planning
+V2 and beyond are tracked in the project documentation for structured feature planning and delivery.
+
 ## Quick Start
 
 ### Installation
@@ -59,8 +74,17 @@ kaizen/
 │   │   └── styles/
 │   ├── index.html
 │   └── package.json
+├── docs/             # Product history, roadmap, and planning
+│   ├── CHANGELOG.md
+│   ├── DEVELOPMENT_JOURNAL.md
+│   ├── VERSION_BACKLOG.md
+│   └── VERSION_ROADMAP.md
 ├── package.json      # Root monorepo
-└── CONSOLIDATED_PROMPT.md  # Complete spec
+├── CONSOLIDATED_PROMPT.md  # Complete spec
+├── DEPLOYMENT_GUIDE.md
+├── README.md
+├── SETUP_GUIDE.md
+└── IMPLEMENTATION_CHECKLIST.md
 ```
 
 ## Key Endpoints
@@ -177,5 +201,18 @@ Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
 
 ---
 
-**Version**: 1.0.0  
+**Version**: V1 (Foundation Release)  
+**Development History**: See [docs/DEVELOPMENT_JOURNAL.md](./docs/DEVELOPMENT_JOURNAL.md)  
+**Version Roadmap**: See [docs/VERSION_ROADMAP.md](./docs/VERSION_ROADMAP.md)  
+**Backlog**: See [docs/VERSION_BACKLOG.md](./docs/VERSION_BACKLOG.md)  
+**Changelog**: See [docs/CHANGELOG.md](./docs/CHANGELOG.md)  
 **Complete Spec**: See [CONSOLIDATED_PROMPT.md](./CONSOLIDATED_PROMPT.md)
+
+<!-- auto-docs:sync:269f1fe -->
+## Documentation Sync Status
+- Last auto-sync: 2026-08-16
+- Current commit: 269f1fe
+- Previous commit: 8e52d43
+- Changed files reviewed: 30
+- Notes: README and changelog were refreshed based on the latest version diff.
+

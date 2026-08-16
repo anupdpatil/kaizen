@@ -1,5 +1,11 @@
 # Deployment Guide - Going Live
 
+## V1 Deployment Context
+
+This project is currently treated as V1: the stable foundation release of the Kaizen competition system.
+
+The deployment setup below reflects the current stage of development and is intended to support local use, staging, and future production deployment planning for V2 enhancements.
+
 ## Overview
 - Frontend: Deploy to **Vercel** (free tier)
 - Backend: Deploy to **Railway** or **Render** (free tier)
@@ -208,6 +214,22 @@ const corsOptions = {
 - [ ] Tested team/jury management
 - [ ] Activity logging verified
 - [ ] Custom domain (optional)
+- [ ] Version summary updated for V1 completion
+- [ ] V2 backlog reviewed before next release cycle
+
+---
+
+## Project Documentation Map
+
+Use these files to maintain a strong record of progression and future planning:
+
+- [README.md](./README.md) - Project overview
+- [docs/DEVELOPMENT_JOURNAL.md](./docs/DEVELOPMENT_JOURNAL.md) - Development and deployment narrative
+- [docs/VERSION_ROADMAP.md](./docs/VERSION_ROADMAP.md) - Version planning and release strategy
+- [docs/VERSION_BACKLOG.md](./docs/VERSION_BACKLOG.md) - Active feature backlog
+- [docs/CHANGELOG.md](./docs/CHANGELOG.md) - Release history and milestones
+
+These documents are meant to support a clean progression from V1 into V2 and future releases without losing the context of what was built and why.
 
 ---
 

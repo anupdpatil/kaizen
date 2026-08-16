@@ -1,5 +1,11 @@
 # Kaizen System - Quick Setup Guide
 
+## V1 Release Status
+
+This project is currently in V1, which represents the core working version of the Kaizen competition management system.
+
+The V1 release includes the complete foundation workflow for administration, jury scoring, rankings, assignment management, and deployment-ready setup.
+
 ## 📋 What's Included
 
 This is a complete, production-ready Kaizen Competition Management System with:
@@ -241,7 +247,11 @@ Files are automatically created on first run.
 
 ## 📚 Complete Documentation
 
-- `README.md` - Project overview
+- `README.md` - Project overview and V1 release summary
+- `docs/DEVELOPMENT_JOURNAL.md` - Full development journey and milestones
+- `docs/VERSION_ROADMAP.md` - Versioned planning and delivery structure
+- `docs/VERSION_BACKLOG.md` - Active backlog for future versions
+- `docs/CHANGELOG.md` - V1 release and update history
 - `CONSOLIDATED_PROMPT.md` - Complete specification
 - Backend code comments for API details
 - Frontend component JSDoc comments
