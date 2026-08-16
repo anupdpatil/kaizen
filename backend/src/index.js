@@ -5,7 +5,6 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import db from './db.js';
 import { authMiddleware, adminMiddleware, createToken, verifyToken } from './middleware/auth.js';
-import { generateSeedData } from './utils/seed.js';
 
 // Import route handlers
 import authRouter from './routes/auth.js';
@@ -51,15 +50,15 @@ async function initializeApp() {
   try {
     await db.init();
     
-    // Check if we need to seed data
-    const contests = await db.getTable('contests');
-    if (contests.length === 0) {
-      const seedData = generateSeedData();
-      await db.setAllData(seedData);
-      console.log('✓ Database initialized with seed data');
-    } else {
-      console.log('✓ Database initialized');
+    // Initialize empty database without seed data
+    const state = await db.getTable('state');
+
+    if (!state?.adminPassword) {
+      const currentState = await db.getTable('state');
+      await db.setTable('state', { ...(currentState || {}), adminPassword: 'admin123' });
     }
+
+    console.log('✓ Database initialized (empty)');
   } catch (error) {
     console.error('Database initialization error:', error);
     process.exit(1);

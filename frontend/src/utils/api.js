@@ -22,7 +22,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isLoginRequest = error.config?.url?.includes('/auth/login');
+
+    if (error.response?.status === 401 && !isLoginRequest) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/';
@@ -36,7 +38,9 @@ export const authAPI = {
   login: (username, password, role) => 
     api.post('/auth/login', { username, password, role }),
   verify: (token) => 
-    api.post('/auth/verify', { token })
+    api.post('/auth/verify', { token }),
+  changePassword: (data) =>
+    api.post('/auth/change-password', data)
 };
 
 // Contests

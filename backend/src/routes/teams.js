@@ -20,9 +20,14 @@ router.get('/', async (req, res) => {
 // POST create team
 router.post('/', adminMiddleware, async (req, res) => {
   try {
-    const { contestId, teamCode, teamName, assignedDay, hallId } = req.body;
+    const { contestId, teamCode, teamName, organisationName, category, assignedDay, hallId } = req.body;
 
-    if (!contestId || !teamCode || !teamName || !assignedDay || hallId === undefined) {
+    const normalizedTeamName = (teamName || '').trim();
+    const normalizedOrganisationName = (organisationName || '').trim();
+    const normalizedTeamCode = (teamCode || normalizedTeamName || '').trim();
+    const normalizedCategory = category || 'Other';
+
+    if (!contestId || !normalizedTeamName || !normalizedOrganisationName || !assignedDay || hallId === undefined) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -45,8 +50,10 @@ router.post('/', adminMiddleware, async (req, res) => {
     const newTeam = {
       id: uuidv4(),
       contestId,
-      teamCode,
-      teamName,
+      teamCode: normalizedTeamCode || `${normalizedOrganisationName.replace(/\s+/g, '-').toUpperCase()}-${Date.now()}`,
+      teamName: normalizedTeamName,
+      organisationName: normalizedOrganisationName,
+      category: normalizedCategory,
       assignedDay: parsedDay,
       hallId: parsedHall,
       isDeleted: false,
@@ -60,7 +67,7 @@ router.post('/', adminMiddleware, async (req, res) => {
       action: 'create',
       entityType: 'team',
       entityId: newTeam.id,
-      details: { teamCode: newTeam.teamCode, teamName: newTeam.teamName }
+      details: { teamCode: newTeam.teamCode, teamName: newTeam.teamName, organisationName: newTeam.organisationName, category: newTeam.category }
     });
     res.status(201).json(newTeam);
   } catch (error) {
@@ -73,7 +80,7 @@ router.post('/', adminMiddleware, async (req, res) => {
 router.put('/:id', adminMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const { teamName, assignedDay, hallId, isDeleted } = req.body;
+    const { teamCode, teamName, organisationName, category, assignedDay, hallId, isDeleted } = req.body;
     const existing = await db.getTable('teams');
     const team = existing.find(item => item.id === id);
 
@@ -88,6 +95,9 @@ router.put('/:id', adminMiddleware, async (req, res) => {
 
     const nextDay = assignedDay !== undefined ? parseInt(assignedDay, 10) : team.assignedDay;
     const nextHall = hallId !== undefined ? parseInt(hallId, 10) : team.hallId;
+    const nextTeamName = teamName !== undefined ? teamName.trim() : team.teamName;
+    const nextOrganisationName = organisationName !== undefined ? organisationName.trim() : (team.organisationName || team.teamName || '');
+    const nextTeamCode = teamCode !== undefined ? teamCode.trim() : (team.teamCode || nextTeamName || '');
 
     if (nextDay < 1 || nextDay > contest.days) {
       return res.status(400).json({ error: `Day must be between 1 and ${contest.days} for this contest.` });
@@ -98,7 +108,10 @@ router.put('/:id', adminMiddleware, async (req, res) => {
     }
 
     const updated = await db.update('teams', id, {
-      ...(teamName && { teamName }),
+      ...(teamName !== undefined && { teamName: nextTeamName }),
+      ...(organisationName !== undefined && { organisationName: nextOrganisationName }),
+      ...(teamCode !== undefined && { teamCode: nextTeamCode }),
+      ...(category && { category }),
       ...(assignedDay !== undefined && { assignedDay: nextDay }),
       ...(hallId !== undefined && { hallId: nextHall }),
       ...(typeof isDeleted !== 'undefined' && { isDeleted })

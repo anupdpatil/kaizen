@@ -12,7 +12,7 @@ function DashboardPage({ appState }) {
         <div className="alert alert-info">No active contest</div>
       ) : (
         <>
-          <div className="card mb-3">
+          <div className="card" style={{ marginBottom: '1rem' }}>
             <h3>Overall Completion</h3>
             <div style={{ fontSize: '2.5rem', color: 'var(--primary)', fontWeight: 'bold' }}>
               {completionPercent}%
@@ -34,7 +34,7 @@ function DashboardPage({ appState }) {
             </div>
           </div>
 
-          <h3 style={{ marginTop: 'var(--spacing-lg)', marginBottom: 'var(--spacing-md)' }}>Hall Completion</h3>
+          <h3 style={{ marginBottom: '1rem' }}>Hallwise Completion</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--spacing-md)' }}>
             {Array.from({ length: activeContest.hallCount }, (_, i) => i + 1).map(hallId => {
               const day1 = getHallCompletion(appState, hallId, 1);

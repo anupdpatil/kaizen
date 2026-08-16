@@ -7,8 +7,7 @@ function ActivityPage({ appState }) {
   return (
     <div>
       <h2>Activity Monitor</h2>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-lg)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: 'var(--spacing-md)', marginBottom: '1rem' }}>
         <div className="card" style={{ padding: 'var(--spacing-md)' }}>
           <small style={{ color: 'var(--text-secondary)' }}>Total recorded</small>
           <div style={{ fontSize: '2rem', fontWeight: 700 }}>{stats.total}</div>
@@ -27,8 +26,8 @@ function ActivityPage({ appState }) {
         </div>
       </div>
 
-      <div className="card" style={{ marginTop: 'var(--spacing-lg)' }}>
-        <h3 style={{ marginBottom: 'var(--spacing-md)' }}>Audit trail</h3>
+      <div className="card">
+        <h3>Audit trail</h3>
 
         {activities.length === 0 ? (
           <div className="text-muted">No activity has been recorded yet.</div>

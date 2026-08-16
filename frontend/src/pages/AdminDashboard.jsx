@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import '../styles/admin.css';
 import AdminLayout from '../components/AdminLayout.jsx';
-import SetupPage from './admin/SetupPage.jsx';
+import SetupPage from './admin/ContestPage.jsx';
 import JuriesPage from './admin/JuriesPage.jsx';
 import TeamsPage from './admin/TeamsPage.jsx';
 import AssignmentsPage from './admin/AssignmentsPage.jsx';

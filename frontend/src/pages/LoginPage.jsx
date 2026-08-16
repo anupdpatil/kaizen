@@ -21,8 +21,8 @@ function LoginPage({ onLogin, error }) {
     <div className="login-container">
       <div className="login-content">
         <div className="login-header">
-          <h1>Kaizen</h1>
-          <p>Competition Management System</p>
+          <h1>CCQC 2026</h1>
+          <p>Chatrapati Sambhajinagar Chapter</p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
@@ -53,7 +53,7 @@ function LoginPage({ onLogin, error }) {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder={role === 'admin' ? 'admin' : 'jury_h1_1'}
+              placeholder='username'
               required
               disabled={loading}
             />
@@ -65,13 +65,13 @@ function LoginPage({ onLogin, error }) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={role === 'admin' ? 'admin123' : 'password'}
+              placeholder='password'
               required
               disabled={loading}
             />
           </div>
 
-          {role === 'admin' && (
+          {/* {role === 'admin' && (
             <div className="login-hint">
               <strong>Demo Admin:</strong>
               <p>Username: admin</p>
@@ -85,7 +85,7 @@ function LoginPage({ onLogin, error }) {
               <p>Check generated credentials</p>
               <p>Format: jury_h{'{hall}'}_{'{1-2}'}</p>
             </div>
-          )}
+          )} */}
 
           <button 
             type="submit" 

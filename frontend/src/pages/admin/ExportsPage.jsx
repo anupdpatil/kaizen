@@ -30,6 +30,8 @@ function ExportsPage({ appState }) {
         return {
           TeamCode: t.teamCode,
           TeamName: t.teamName,
+          OrganisationName: t.organisationName || t.teamName,
+          Category: t.category || 'Other',
           Hall: t.hallId,
           Day: t.assignedDay,
           Score: score ? score.toFixed(2) : '-'
@@ -79,6 +81,8 @@ function ExportsPage({ appState }) {
         return {
           TeamCode: t.teamCode,
           TeamName: t.teamName,
+          OrganisationName: t.organisationName || t.teamName,
+          Category: t.category || 'Other',
           Hall: t.hallId,
           Day: t.assignedDay,
           Jury1: jury1Name,
@@ -95,9 +99,8 @@ function ExportsPage({ appState }) {
   return (
     <div>
       <h2>Exports</h2>
-      <p>Export results in various formats</p>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 'var(--spacing-lg)', marginTop: 'var(--spacing-lg)' }}>
+      <p style={{ marginBottom: '1rem' }}>Export results in various formats</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 'var(--spacing-md)' }}>
         <div className="card text-center">
           <h3>📊 Team-wise</h3>
           <p>Export results grouped by team</p>

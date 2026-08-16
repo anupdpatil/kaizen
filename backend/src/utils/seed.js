@@ -26,7 +26,8 @@ export const generateSeedData = () => {
         username: `jury_h${hall}_${j}`,
         password: `jury${hall}${j}password`, // In production, this should be hashed
         isDeleted: false,
-        role: 'jury'
+        role: 'jury',
+        mustChangePassword: true
       });
     }
   }
@@ -42,6 +43,8 @@ export const generateSeedData = () => {
           contestId,
           teamCode: `T${String(hall).padStart(2, '0')}D${day}${String(t).padStart(2, '0')}`,
           teamName: `Team Hall${hall} Day${day} #${t}`,
+          organisationName: `Organisation Hall${hall} Day${day} #${t}`,
+          category: t % 2 === 0 ? 'School' : 'College',
           assignedDay: day,
           hallId: hall,
           isDeleted: false

@@ -1,9 +1,12 @@
+import { useState } from 'react';
+import PasswordChangeModal from './PasswordChangeModal.jsx';
 import '../styles/layout.css';
 
 function AdminLayout({ user, currentView, onViewChange, onLogout, syncError, children }) {
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const views = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'contest', label: 'Contest', icon: '⚙️' },
+    { id: 'setup', label: 'Setup', icon: '⚙️' },
     { id: 'juries', label: 'Juries', icon: '👥' },
     { id: 'teams', label: 'Teams', icon: '🎯' },
     { id: 'assignments', label: 'Assignments', icon: '📍' },
@@ -18,14 +21,17 @@ function AdminLayout({ user, currentView, onViewChange, onLogout, syncError, chi
       <header className="admin-header">
         <div className="header-content">
           <div className="header-left">
-            <h1>Kaizen</h1>
-            <p>Competition Management</p>
+            <h1>CCQC 2026</h1>
+            <p>Chatrapati Sambhajinagar Chapter</p>
           </div>
           <div className="header-right">
             <span className="user-badge">
               <strong>{user.username}</strong>
               <small>({user.role})</small>
             </span>
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowPasswordModal(true)}>
+              Change Password
+            </button>
             <button className="btn btn-secondary btn-sm" onClick={onLogout}>
               Logout
             </button>
@@ -42,7 +48,7 @@ function AdminLayout({ user, currentView, onViewChange, onLogout, syncError, chi
               onClick={() => onViewChange(view.id)}
             >
               <span className="nav-icon">{view.icon}</span>
-              <span className="nav-label">{view.label}</span>
+              <span className="nav-label">{view.label=== 'Setup' ? 'Contest' : view.label}</span>
             </button>
           ))}
         </nav>
@@ -56,6 +62,12 @@ function AdminLayout({ user, currentView, onViewChange, onLogout, syncError, chi
           {children}
         </main>
       </div>
+
+      <PasswordChangeModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+        user={user}
+      />
     </div>
   );
 }

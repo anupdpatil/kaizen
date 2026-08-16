@@ -39,6 +39,7 @@ router.post('/', adminMiddleware, async (req, res) => {
       password, // In production, should be hashed
       isDeleted: false,
       role: role || 'jury',
+      mustChangePassword: true,
       createdAt: new Date().toISOString()
     };
 

@@ -3,6 +3,7 @@ import { authAPI, stateAPI, contestsAPI, juriesAPI, teamsAPI, assignmentsAPI, ev
 import LoginPage from './pages/LoginPage.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import JuryDashboard from './pages/JuryDashboard.jsx';
+import ToastContainer from './components/ToastContainer.jsx';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -125,6 +126,20 @@ function App() {
     });
   };
 
+  const handlePasswordChanged = (updatedUser) => {
+    if (!updatedUser) {
+      const nextUser = user ? { ...user, mustChangePassword: false } : null;
+      if (nextUser) {
+        localStorage.setItem('user', JSON.stringify(nextUser));
+        setUser(nextUser);
+      }
+      return;
+    }
+
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  };
+
   // Handle state update
   const updateState = useCallback((newState) => {
     const mergedState = { ...appState, ...newState };
@@ -149,35 +164,54 @@ function App() {
     );
   }
 
-  if (!user) {
-    return <LoginPage onLogin={handleLogin} error={error} />;
-  }
+  const content = (() => {
+    if (!user) {
+      return <LoginPage onLogin={handleLogin} error={error} />;
+    }
 
-  if (user.role === 'admin') {
-    return (
-      <AdminDashboard 
-        user={user} 
-        appState={appState} 
-        updateState={updateState}
-        onLogout={handleLogout}
-        syncError={syncError}
-      />
-    );
-  }
+    if (user.role === 'admin') {
+      return (
+        <AdminDashboard 
+          user={user} 
+          appState={appState} 
+          updateState={updateState}
+          onLogout={handleLogout}
+          syncError={syncError}
+        />
+      );
+    }
 
-  if (user.role === 'jury') {
-    return (
-      <JuryDashboard 
-        user={user} 
-        appState={appState} 
-        updateState={updateState}
-        onLogout={handleLogout}
-        syncError={syncError}
-      />
-    );
-  }
+    if (user.role === 'jury') {
+      return (
+        <JuryDashboard 
+          user={user} 
+          appState={appState} 
+          updateState={updateState}
+          onLogout={handleLogout}
+          syncError={syncError}
+          forcePasswordChange={Boolean(user.mustChangePassword)}
+          onPasswordChanged={handlePasswordChanged}
+        />
+      );
+    }
 
-  return <div>Unknown role</div>;
+    return <div>Unknown role</div>;
+  })();
+
+  return (
+    <div className="app-shell">
+      <main className="app-main">{content}</main>
+      {/* <footer className="app-footer">
+        <div className="app-footer-inner">
+          <span className="footer-label">Powered by</span>
+          <strong className="footer-brand">InspiringMinds</strong>
+          <span className="footer-separator">•</span>
+          <span>Developed and maintained by InspiringMinds</span>
+        </div>
+      </footer>
+      <ToastContainer /> */}
+    </div>
+  );
 }
 
 export default App;
