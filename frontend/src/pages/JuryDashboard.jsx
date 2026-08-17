@@ -301,7 +301,7 @@ function JuryDashboard({ user, appState, updateState, onLogout, syncError, force
                             onChange={(e) => setScores({ ...scores, [criterion]: e.target.value })}
                             disabled={loading}
                           >
-                            <option value="">Select (0-10)</option>
+                            <option value="">Select (0-{weightage})</option>
                             {Array.from({ length: weightage + 1 }, (_, i) => (
                               <option key={i} value={i}>{i}</option>
                             ))}
