@@ -209,14 +209,14 @@ function DetailedScoresPage({ appState }) {
                         >
                           {c.criterion}
                         </div>
-                        <div
+                        {/* <div
                           style={{
                             fontSize: "0.85rem",
                             color: "var(--color-text-secondary)",
                           }}
                         >
-                          Weight: {c.weightage}%
-                        </div>
+                          Weight: {c.weightage} marks
+                        </div> */}
                       </div>
                       <div
                         style={{
@@ -229,7 +229,7 @@ function DetailedScoresPage({ appState }) {
                         }}
                       >
                         {juryScore.scores[c.criterion] !== undefined
-                          ? juryScore.scores[c.criterion]
+                          ? `${juryScore.scores[c.criterion]}/${c.weightage}`
                           : "-"}
                       </div>
                     </div>

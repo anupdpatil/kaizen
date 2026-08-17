@@ -105,6 +105,9 @@ function JuryDashboard({ user, appState, updateState, onLogout, syncError, force
     }
 
     const total = calculateWeightedTotal(scoreObj, criteria);
+// console.log('scoreObj',scoreObj);
+// console.log('criteria',criteria);
+// console.log('total',total);
 
     setConfirmationSummary({
       teamName: selectedTeam.teamName,
@@ -277,7 +280,7 @@ function JuryDashboard({ user, appState, updateState, onLogout, syncError, force
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)' }}>
                       {criteria.map(({ criterion, weightage }) => (
                         <div key={criterion} className="form-group">
-                          <label style={{ fontSize: '0.875rem' }}>{criterion} ({weightage}%)</label>
+                          <label style={{ fontSize: '0.875rem' }}>{criterion} ({weightage} marks)</label>
                           <div className="score-readonly-box">
                             {selectedTeamSubmission.scores?.[criterion] ?? '—'}
                           </div>
@@ -291,7 +294,7 @@ function JuryDashboard({ user, appState, updateState, onLogout, syncError, force
                       {criteria.map(({ criterion, weightage }) => (
                         <div key={criterion} className="form-group">
                           <label className="required" style={{ fontSize: '0.875rem' }}>
-                            {criterion} ({weightage}%)
+                            {criterion} ({weightage} marks)
                           </label>
                           <select
                             value={scores[criterion] || ''}
@@ -299,7 +302,7 @@ function JuryDashboard({ user, appState, updateState, onLogout, syncError, force
                             disabled={loading}
                           >
                             <option value="">Select (0-10)</option>
-                            {Array.from({ length: 11 }, (_, i) => (
+                            {Array.from({ length: weightage + 1 }, (_, i) => (
                               <option key={i} value={i}>{i}</option>
                             ))}
                           </select>
@@ -339,7 +342,7 @@ function JuryDashboard({ user, appState, updateState, onLogout, syncError, force
             <div className="confirmation-summary-list">
               {criteria.map(({ criterion, weightage }) => (
                 <div key={criterion} className="confirmation-row">
-                  <span>{criterion} ({weightage}%)</span>
+                  <span>{criterion} ({weightage}marks)</span>
                   <strong>{confirmationSummary.scores[criterion]}</strong>
                 </div>
               ))}

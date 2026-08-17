@@ -20,15 +20,16 @@ export const getContestScopedItems = (items = [], contestId) => {
 };
 
 export const calculateWeightedTotal = (scores = {}, criteria = []) => {
-  if (!criteria.length) {
-    return Object.values(scores).reduce((sum, value) => sum + Number(value || 0), 0);
-  }
+  // if (!criteria.length) {
+  //   return Object.values(scores).reduce((sum, value) => sum + Number(value || 0), 0);
+  // }
 
-  return criteria.reduce((sum, criterion) => {
-    const scoreValue = Number(scores[criterion.criterion] ?? 0);
-    const weightage = Number(criterion.weightage ?? 0);
-    return sum + (scoreValue * weightage) / 10;
-  }, 0);
+  // return criteria.reduce((sum, criterion) => {
+  //   const scoreValue = Number(scores[criterion.criterion] ?? 0);
+  //   const weightage = Number(criterion.weightage ?? 0);
+  //   return sum + (scoreValue * weightage) / 10;
+  // }, 0);
+  return Object.values(scores).reduce((sum, value) => sum + value, 0);
 };
 
 // Scoring calculations
