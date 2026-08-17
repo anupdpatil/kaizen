@@ -102,6 +102,11 @@ function ContestPage({ appState, updateState }) {
     });
   };
 
+  const handleSetActiveContest = (contestId) => {
+    updateState({ state: { ...(appState.state || {}), activeContestId: contestId } });
+    showToast('Active contest updated', 'success');
+  };
+
   const handleDelete = async (contestId) => {
     const contest = (appState.contests || []).find(item => item.id === contestId);
     const contestName = contest?.name || 'this contest';
@@ -307,6 +312,13 @@ function ContestPage({ appState, updateState }) {
                             </button>
                             <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleDelete(contest.id)}>
                               Delete
+                            </button>
+                            <button
+                              type="button"
+                              className={`btn btn-sm ${appState.state?.activeContestId === contest.id ? 'btn-primary' : 'btn-secondary'}`}
+                              onClick={() => handleSetActiveContest(contest.id)}
+                            >
+                              {appState.state?.activeContestId === contest.id ? 'Active' : 'Set Active'}
                             </button>
                             {!contest.published && (
                               <button type="button" className="btn btn-primary btn-sm" onClick={() => handlePublish(contest.id)}>

@@ -11,6 +11,7 @@ function AdminLayout({ user, currentView, onViewChange, onLogout, syncError, chi
     { id: 'teams', label: 'Teams', icon: '🎯' },
     { id: 'assignments', label: 'Assignments', icon: '📍' },
     { id: 'results', label: 'Results', icon: '📋' },
+    { id: 'detailed-scores', label: 'Detailed Scores', icon: '📈' },
     { id: 'rankings', label: 'Rankings', icon: '🏆' },
     { id: 'exports', label: 'Exports', icon: '📥' },
     { id: 'activity', label: 'Activity', icon: '🧾' }

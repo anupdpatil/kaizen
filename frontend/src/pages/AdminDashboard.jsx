@@ -10,6 +10,7 @@ import ActivityPage from './admin/ActivityPage.jsx';
 import ResultsPage from './admin/ResultsPage.jsx';
 import RankingsPage from './admin/RankingsPage.jsx';
 import ExportsPage from './admin/ExportsPage.jsx';
+import DetailedScoresPage from './admin/DetailedScoresPage.jsx';
 
 function AdminDashboard({ user, appState, updateState, onLogout, syncError }) {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -32,6 +33,8 @@ function AdminDashboard({ user, appState, updateState, onLogout, syncError }) {
         return <ResultsPage appState={appState} />;
       case 'rankings':
         return <RankingsPage appState={appState} />;
+      case 'detailed-scores':
+        return <DetailedScoresPage appState={appState} />;
       case 'exports':
         return <ExportsPage appState={appState} />;
       default:

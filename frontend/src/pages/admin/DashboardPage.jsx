@@ -1,8 +1,9 @@
-import { getCompletionPercentage, getHallCompletion } from '../../utils/helpers.js';
+import { getActiveContestId, getCompletionPercentage, getHallCompletion } from '../../utils/helpers.js';
 
 function DashboardPage({ appState }) {
-  const completionPercent = getCompletionPercentage(appState);
-  const activeContest = appState.contests && appState.contests[0];
+  const activeContestId = getActiveContestId(appState);
+  const activeContest = (appState.contests || []).find(contest => contest.id === activeContestId) || null;
+  const completionPercent = getCompletionPercentage(appState, activeContestId);
 
   return (
     <div>

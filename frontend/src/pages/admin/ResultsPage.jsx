@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { getActiveContestId } from '../../utils/helpers.js';
 
 function ResultsPage({ appState }) {
   const [hallFilter, setHallFilter] = useState('');
@@ -8,9 +9,11 @@ function ResultsPage({ appState }) {
   const [sortConfig, setSortConfig] = useState({ key: 'average', direction: 'desc' });
   const pageSize = 5;
 
+  const activeContestId = getActiveContestId(appState);
   const results = useMemo(() => {
     return (appState.teams || [])
       .filter(t => !t.isDeleted)
+      .filter(t => !activeContestId || t.contestId === activeContestId)
       .filter(t => !hallFilter || t.hallId === parseInt(hallFilter))
       .filter(t => !dayFilter || t.assignedDay === parseInt(dayFilter))
       .filter(t => {

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { calculateTeamScore } from '../../utils/helpers.js';
+import { calculateTeamScore, getActiveContestId } from '../../utils/helpers.js';
+import { CATEGORY_WISE_EVALUATION_CRITERIA } from '../../constants/categoryWiseEvaluationCriteria.js';
 
 function RankingsPage({ appState }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -7,13 +8,18 @@ function RankingsPage({ appState }) {
   const [sortConfig, setSortConfig] = useState({ key: 'score', direction: 'desc' });
   const pageSize = 5;
 
+  const activeContestId = getActiveContestId(appState);
   const rankings = useMemo(() => {
     return (appState.teams || [])
       .filter(t => !t.isDeleted)
-      .map(t => ({
-        team: t,
-        score: calculateTeamScore(appState.evaluations, t.id)
-      }))
+      .filter(t => !activeContestId || t.contestId === activeContestId)
+      .map(t => {
+        const criteria = CATEGORY_WISE_EVALUATION_CRITERIA[t.category] || CATEGORY_WISE_EVALUATION_CRITERIA['Allied Case Study'];
+        return {
+          team: t,
+          score: calculateTeamScore(appState.evaluations, t.id, criteria)
+        };
+      })
       .filter(r => r.score !== null)
       .filter(r => {
         if (!searchTerm.trim()) return true;
@@ -72,7 +78,7 @@ function RankingsPage({ appState }) {
                     <th onClick={() => handleSort('category')} style={{ cursor: 'pointer' }}>Category {sortConfig.key === 'category' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
                     <th onClick={() => handleSort('hallId')} style={{ cursor: 'pointer' }}>Hall {sortConfig.key === 'hallId' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
                     <th onClick={() => handleSort('assignedDay')} style={{ cursor: 'pointer' }}>Day {sortConfig.key === 'assignedDay' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
-                    <th onClick={() => handleSort('score')} style={{ cursor: 'pointer' }}>Score {sortConfig.key === 'score' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
+                    <th onClick={() => handleSort('score')} style={{ cursor: 'pointer' }}>Weighted Score {sortConfig.key === 'score' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : ''}</th>
                   </tr>
                 </thead>
                 <tbody>

@@ -3,6 +3,7 @@ import { evaluationsAPI } from '../utils/api.js';
 import PasswordChangeModal from '../components/PasswordChangeModal.jsx';
 import { TEAM_CATEGORIES } from '../constants/teamCategories.js';
 import { CATEGORY_WISE_EVALUATION_CRITERIA } from '../constants/categoryWiseEvaluationCriteria.js';
+import { calculateWeightedTotal, getActiveContestId } from '../utils/helpers.js';
 import '../styles/jury.css';
 
 function JuryDashboard({ user, appState, updateState, onLogout, syncError, forcePasswordChange = false, onPasswordChanged }) {
@@ -55,16 +56,16 @@ function JuryDashboard({ user, appState, updateState, onLogout, syncError, force
     );
   }
 
-  // Get assigned halls for this jury (only from published contests)
-  const publishedContests = (appState.contests || []).filter(c => c.published);
+  const activeContestId = getActiveContestId(appState);
+
+  // Get assigned halls for this jury for the active contest
   const assignedHalls = appState.hall_assignments
-    ?.filter(a => a.juryIds.includes(user.id))
-    .filter(a => publishedContests.some(c => c.id === a.contestId))
+    ?.filter(a => a.contestId === activeContestId && a.juryIds.includes(user.id))
     .map(a => ({ day: a.day, hallId: a.hallId, contestId: a.contestId })) || [];
 
-  // Get pending and submitted teams for assigned halls
+  // Get pending and submitted teams for assigned halls in the active contest
   const assignedTeams = appState.teams
-    ?.filter(t => !t.isDeleted)
+    ?.filter(t => !t.isDeleted && t.contestId === activeContestId)
     .filter(t => assignedHalls.some(h => h.hallId === t.hallId && h.day === t.assignedDay)) || [];
 
   const pendingTeams = assignedTeams.filter(t => {
@@ -97,13 +98,13 @@ function JuryDashboard({ user, appState, updateState, onLogout, syncError, force
     if (!validateScores()) return;
 
     const scoreObj = {};
-    let total = 0;
     for (const criterion of criteria) {
       const criterionName = criterion.criterion;
       const value = parseInt(scores[criterionName], 10);
       scoreObj[criterionName] = value;
-      total += value;
     }
+
+    const total = calculateWeightedTotal(scoreObj, criteria);
 
     setConfirmationSummary({
       teamName: selectedTeam.teamName,
@@ -111,7 +112,7 @@ function JuryDashboard({ user, appState, updateState, onLogout, syncError, force
       category: selectedTeam.category || 'Other',
       hallId: selectedTeam.hallId,
       assignedDay: selectedTeam.assignedDay,
-      total,
+      total: Number(total.toFixed(2)),
       scores: scoreObj
     });
     setError('');
@@ -129,7 +130,8 @@ function JuryDashboard({ user, appState, updateState, onLogout, syncError, force
         teamId: selectedTeam.id,
         juryId: user.id,
         contestId: selectedTeam.contestId,
-        scores: confirmationSummary.scores
+        scores: confirmationSummary.scores,
+        total: confirmationSummary.total
       });
 
       const newEvals = { ...appState.evaluations };
@@ -273,9 +275,9 @@ function JuryDashboard({ user, appState, updateState, onLogout, syncError, force
 
                     <div className="submission-total">Total Score: {selectedTeamSubmission.total || 0}</div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)' }}>
-                      {criteria.map(({ criterion }) => (
+                      {criteria.map(({ criterion, weightage }) => (
                         <div key={criterion} className="form-group">
-                          <label style={{ fontSize: '0.875rem' }}>{criterion}</label>
+                          <label style={{ fontSize: '0.875rem' }}>{criterion} ({weightage}%)</label>
                           <div className="score-readonly-box">
                             {selectedTeamSubmission.scores?.[criterion] ?? '—'}
                           </div>
@@ -286,10 +288,10 @@ function JuryDashboard({ user, appState, updateState, onLogout, syncError, force
                 ) : (
                   <>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)' }}>
-                      {criteria.map(({ criterion }) => (
+                      {criteria.map(({ criterion, weightage }) => (
                         <div key={criterion} className="form-group">
                           <label className="required" style={{ fontSize: '0.875rem' }}>
-                            {criterion}
+                            {criterion} ({weightage}%)
                           </label>
                           <select
                             value={scores[criterion] || ''}
@@ -335,9 +337,9 @@ function JuryDashboard({ user, appState, updateState, onLogout, syncError, force
             <p><strong>Hall:</strong> {confirmationSummary.hallId} <strong>Day:</strong> {confirmationSummary.assignedDay}</p>
 
             <div className="confirmation-summary-list">
-              {criteria.map(({ criterion }) => (
+              {criteria.map(({ criterion, weightage }) => (
                 <div key={criterion} className="confirmation-row">
-                  <span>{criterion}</span>
+                  <span>{criterion} ({weightage}%)</span>
                   <strong>{confirmationSummary.scores[criterion]}</strong>
                 </div>
               ))}

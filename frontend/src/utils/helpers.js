@@ -1,10 +1,49 @@
+export const getActiveContestId = (appState = {}) => {
+  const contests = appState.contests || [];
+  const activeContestId = appState.state?.activeContestId;
+
+  if (activeContestId && contests.some(contest => contest.id === activeContestId)) {
+    return activeContestId;
+  }
+
+  const publishedContest = contests.find(contest => contest.published && !contest.deletedAt);
+  if (publishedContest) {
+    return publishedContest.id;
+  }
+
+  return contests[0]?.id || null;
+};
+
+export const getContestScopedItems = (items = [], contestId) => {
+  if (!contestId) return items;
+  return items.filter(item => item.contestId === contestId);
+};
+
+export const calculateWeightedTotal = (scores = {}, criteria = []) => {
+  if (!criteria.length) {
+    return Object.values(scores).reduce((sum, value) => sum + Number(value || 0), 0);
+  }
+
+  return criteria.reduce((sum, criterion) => {
+    const scoreValue = Number(scores[criterion.criterion] ?? 0);
+    const weightage = Number(criterion.weightage ?? 0);
+    return sum + (scoreValue * weightage) / 10;
+  }, 0);
+};
+
 // Scoring calculations
-export const calculateTeamScore = (evaluations, teamId) => {
+export const calculateTeamScore = (evaluations, teamId, criteria = []) => {
   const teamEvals = evaluations[teamId];
   if (!teamEvals || Object.keys(teamEvals).length < 2) return null;
 
-  const scores = Object.values(teamEvals).map(e => e.total);
-  return (scores[0] + scores[1]) / 2;
+  const totals = Object.values(teamEvals).map(e => {
+    if (criteria.length > 0) {
+      return calculateWeightedTotal(e.scores || {}, criteria);
+    }
+    return Number(e.total || 0);
+  });
+
+  return totals.length ? totals.reduce((sum, value) => sum + value, 0) / totals.length : null;
 };
 
 export const calculateCategoryScore = (evaluations, teamId, criteria) => {
@@ -15,10 +54,7 @@ export const calculateCategoryScore = (evaluations, teamId, criteria) => {
   let count = 0;
 
   for (const teamEvaluation of Object.values(teamEvals)) {
-    let categoryTotal = 0;
-    for (const criterion of criteria) {
-      categoryTotal += teamEvaluation.scores[criterion] || 0;
-    }
+    const categoryTotal = calculateWeightedTotal(teamEvaluation.scores || {}, criteria);
     totalScore += categoryTotal;
     count++;
   }
@@ -41,14 +77,17 @@ export const getTeamRanking = (appState, scoreFn) => {
   return rankings.sort((a, b) => b.score - a.score);
 };
 
-export const getCompletionPercentage = (appState) => {
-  const { teams, evaluations, hall_assignments } = appState;
-  const activeTeams = teams.filter(t => !t.isDeleted).length;
+export const getCompletionPercentage = (appState, contestId = getActiveContestId(appState)) => {
+  const { teams, evaluations } = appState;
+  const scopedTeams = contestId
+    ? teams.filter(t => !t.isDeleted && t.contestId === contestId)
+    : teams.filter(t => !t.isDeleted);
+
+  const activeTeams = scopedTeams.length;
   if (activeTeams === 0) return 0;
 
   let completed = 0;
-  for (const team of teams) {
-    if (team.isDeleted) continue;
+  for (const team of scopedTeams) {
     const teamEvals = evaluations[team.id];
     if (teamEvals && Object.keys(teamEvals).length >= 2) {
       completed++;
@@ -58,9 +97,13 @@ export const getCompletionPercentage = (appState) => {
   return Math.round((completed / activeTeams) * 100);
 };
 
-export const getHallCompletion = (appState, hallId, day) => {
+export const getHallCompletion = (appState, hallId, day, contestId = getActiveContestId(appState)) => {
   const { teams, evaluations } = appState;
-  const hallTeams = teams.filter(t => t.hallId === hallId && t.assignedDay === day && !t.isDeleted);
+  const hallTeams = teams.filter(t => {
+    const matchesContest = !contestId || t.contestId === contestId;
+    return matchesContest && t.hallId === hallId && t.assignedDay === day && !t.isDeleted;
+  });
+
   if (hallTeams.length === 0) return { completed: 0, total: 0, percentage: 0 };
 
   let completed = 0;
