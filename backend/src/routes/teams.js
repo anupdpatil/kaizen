@@ -76,6 +76,287 @@ router.post('/', adminMiddleware, async (req, res) => {
   }
 });
 
+// POST bulk import teams
+router.post('/bulk-import', adminMiddleware, async (req, res) => {
+  try {
+    const { contestId, teams } = req.body;
+
+    if (!contestId) {
+      return res.status(400).json({
+        error: 'Contest is required'
+      });
+    }
+
+    if (!Array.isArray(teams) || teams.length === 0) {
+      return res.status(400).json({
+        error: 'No teams were supplied for import'
+      });
+    }
+
+    if (teams.length > 1000) {
+      return res.status(400).json({
+        error: 'Maximum 1000 teams can be imported at once'
+      });
+    }
+
+    const contests = await db.getTable('contests');
+
+    const contest = contests.find(
+      item => item.id === contestId
+    );
+
+    if (!contest) {
+      return res.status(400).json({
+        error: 'Contest not found'
+      });
+    }
+
+    const existingTeams =
+      await db.getTable('teams');
+
+    /*
+     * Existing active teams for this contest.
+     */
+    const existingContestTeams =
+      existingTeams.filter(
+        team =>
+          team.contestId === contestId &&
+          !team.isDeleted
+      );
+
+    const existingTeamNames =
+      new Set(
+        existingContestTeams.map(team =>
+          String(team.teamName || '')
+            .trim()
+            .toLowerCase()
+        )
+      );
+
+    const csvTeamNames = new Set();
+
+    const validationErrors = [];
+
+    const newTeams = [];
+
+    for (
+      let index = 0;
+      index < teams.length;
+      index += 1
+    ) {
+      const row = teams[index];
+
+      const rowNumber = index + 2;
+
+      const teamName =
+        String(row.teamName || '').trim();
+
+      const organisationName =
+        String(
+          row.organisationName || ''
+        ).trim();
+
+      const category =
+        String(
+          row.category || ''
+        ).trim();
+
+      const assignedDay =
+        Number(row.assignedDay);
+
+      const hallId =
+        Number(row.hallId);
+
+      const errors = [];
+
+      if (!teamName) {
+        errors.push(
+          'Team Name is required'
+        );
+      }
+
+      if (!organisationName) {
+        errors.push(
+          'Organization Name is required'
+        );
+      }
+
+      if (!category) {
+        errors.push(
+          'Category is required'
+        );
+      }
+
+      if (
+        !Number.isInteger(assignedDay)
+      ) {
+        errors.push(
+          'Day must be a whole number'
+        );
+      } else if (
+        assignedDay < 1 ||
+        assignedDay > contest.days
+      ) {
+        errors.push(
+          `Day must be between 1 and ${contest.days}`
+        );
+      }
+
+      if (
+        !Number.isInteger(hallId)
+      ) {
+        errors.push(
+          'Hall must be a whole number'
+        );
+      } else if (
+        hallId < 1 ||
+        hallId > contest.hallCount
+      ) {
+        errors.push(
+          `Hall must be between 1 and ${contest.hallCount}`
+        );
+      }
+
+      const normalizedName =
+        teamName.toLowerCase();
+
+      if (
+        normalizedName &&
+        existingTeamNames.has(
+          normalizedName
+        )
+      ) {
+        errors.push(
+          'Team already exists for this contest'
+        );
+      }
+
+      // if (
+      //   normalizedName &&
+      //   csvTeamNames.has(
+      //     normalizedName
+      //   )
+      // ) {
+      //   errors.push(
+      //     'Duplicate team name in import file'
+      //   );
+      // }
+
+      if (normalizedName) {
+        csvTeamNames.add(
+          normalizedName
+        );
+      }
+
+      if (errors.length > 0) {
+        validationErrors.push({
+          row: rowNumber,
+          teamName,
+          errors
+        });
+
+        continue;
+      }
+
+      const teamCode =
+        teamName
+          .replace(/\s+/g, '-')
+          .toUpperCase();
+
+      newTeams.push({
+        id: uuidv4(),
+
+        contestId,
+
+        teamCode,
+
+        teamName,
+
+        organisationName,
+
+        category,
+
+        assignedDay,
+
+        hallId,
+
+        isDeleted: false,
+
+        createdAt:
+          new Date().toISOString()
+      });
+    }
+
+    /*
+     * IMPORTANT:
+     *
+     * Do not insert anything when there
+     * are validation errors.
+     *
+     * This gives us an all-or-nothing import.
+     */
+    if (validationErrors.length > 0) {
+      return res.status(400).json({
+        error:
+          'Import contains validation errors',
+        errors: validationErrors
+      });
+    }
+
+    /*
+     * Existing db.setTable() ultimately writes
+     * the complete teams array to MongoDB.
+     */
+    const updatedTeams = [
+      ...existingTeams,
+      ...newTeams
+    ];
+
+    await db.setTable(
+      'teams',
+      updatedTeams
+    );
+
+    await logActivity({
+      actor: req.user?.username,
+      actorRole: req.user?.role,
+
+      action: 'bulk_import',
+
+      entityType: 'team',
+
+      entityId: contestId,
+
+      details: {
+        contestId,
+        importedCount: newTeams.length
+      }
+    });
+
+    return res.status(201).json({
+      success: true,
+
+      count: newTeams.length,
+
+      teams: newTeams,
+
+      message:
+        `${newTeams.length} teams imported successfully`
+    });
+
+  } catch (error) {
+    console.error(
+      'Bulk import teams error:',
+      error
+    );
+
+    return res.status(500).json({
+      error:
+        'Internal server error while importing teams'
+    });
+  }
+});
+
 // PUT update team (soft delete/restore or edit day/hall)
 router.put('/:id', adminMiddleware, async (req, res) => {
   try {

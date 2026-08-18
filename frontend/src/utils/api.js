@@ -67,6 +67,7 @@ export const juriesAPI = {
 export const teamsAPI = {
   getAll: () => api.get('/teams'),
   create: (data) => api.post('/teams', data),
+  bulkCreate: (data) => api.post('/teams/bulk-import', data),
   update: (id, data) => api.put(`/teams/${id}`, data),
   delete: (id) => api.delete(`/teams/${id}`)
 };
