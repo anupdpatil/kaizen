@@ -1,0 +1,38 @@
+name: Documentation Sync
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Update markdown documentation
+        run: |
+          node scripts/update-docs.js
+
+      - name: Commit documentation updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md docs
+          if git diff --cached --quiet -- README.md docs; then
+            echo "No documentation changes to commit."
+          else
+            git commit -m "docs: sync project documentation from latest push"
+            git push
+          fi

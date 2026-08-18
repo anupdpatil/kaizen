@@ -1,0 +1,23 @@
+{
+  "name": "kaizen-competition-system",
+  "version": "1.0.0",
+  "description": "Full-stack Kaizen Competition Management System",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm install",
+    "build:frontend": "cd frontend && npm install && npm run build",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install && cd ..",
+    "start": "npm run dev",
+    "docs:sync": "node scripts/update-docs.js"
+  },
+  "keywords": ["kaizen", "competition", "management"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
