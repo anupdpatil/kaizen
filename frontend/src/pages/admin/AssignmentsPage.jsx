@@ -173,7 +173,7 @@ function AssignmentsPage({ appState, updateState }) {
           <form onSubmit={handleAssign} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 'var(--spacing-md)', width: '100%' }}>
             {error && <div className="alert alert-error mb-3" style={{ gridColumn: '1 / -1' }}>{error}</div>}
 
-            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+            <div className="form-group" style={{ minWidth: 0 }}>
               <label className="required">Contest</label>
               <select
                 value={form.contestId}
@@ -195,7 +195,7 @@ function AssignmentsPage({ appState, updateState }) {
               </select>
             </div>
 
-            <div className="form-group">
+            <div className="form-group" style={{ minWidth: 0 }}>
               <label className="required">Day</label>
               <input
                 type="number"
@@ -211,7 +211,7 @@ function AssignmentsPage({ appState, updateState }) {
               />
             </div>
 
-            <div className="form-group">
+            <div className="form-group" style={{ minWidth: 0 }}>
               <label className="required">Hall</label>
               <select
                 value={form.hallId}
@@ -224,7 +224,7 @@ function AssignmentsPage({ appState, updateState }) {
               </select>
             </div>
 
-            <div className="form-group" style={{ gridColumn: '1 / span 2' }}>
+            <div className="form-group" style={{ minWidth: 0 }}>
               <label className="required">Jury 1</label>
               <select
                 value={form.juryIds[0]}
@@ -238,7 +238,7 @@ function AssignmentsPage({ appState, updateState }) {
               </select>
             </div>
 
-            <div className="form-group" style={{ gridColumn: '3 / 4' }}>
+            <div className="form-group" style={{ minWidth: 0 }}>
               <label className="required">Jury 2</label>
               <select
                 value={form.juryIds[1]}

@@ -188,7 +188,7 @@ function ContestPage({ appState, updateState }) {
             <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(120px, 1fr))', gap: '1rem', alignItems: 'end' }}>
               {error && <div className="alert alert-error mb-3" style={{ gridColumn: '1 / -1' }}>{error}</div>}
 
-              <div className="form-group" style={{ gridColumn: '1 / span 2', minWidth: 0 }}>
+              <div className="form-group" style={{ minWidth: 0 }}>
                 <label className="required">Contest Name</label>
                 <input
                   type="text"
@@ -200,7 +200,7 @@ function ContestPage({ appState, updateState }) {
                 />
               </div>
 
-              <div className="form-group" style={{ gridColumn: '3 / span 2', minWidth: 0 }}>
+              <div className="form-group" style={{ minWidth: 0 }}>
                 <label className="required">Code</label>
                 <input
                   type="text"
