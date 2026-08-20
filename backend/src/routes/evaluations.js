@@ -14,7 +14,8 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST submit evaluation (jury scoring)
+// POST /submit
+// Create a new evaluation OR update an existing evaluation
 router.post("/submit", async (req, res) => {
   try {
     const {
@@ -26,64 +27,92 @@ router.post("/submit", async (req, res) => {
     } = req.body;
 
     if (!teamId || !juryId || !scores) {
-      return res.status(400).json({ error: "Missing required fields" });
+      return res.status(400).json({
+        error: "Missing required fields",
+      });
     }
 
     const scoreEntries = Object.entries(scores);
+
     if (scoreEntries.length === 0) {
-      return res.status(400).json({ error: "No scores provided" });
+      return res.status(400).json({
+        error: "No scores provided",
+      });
     }
 
-    // for (const [criterion, value] of scoreEntries) {
-    //   const score = Number(value);
-    //   if (!Number.isFinite(score) || score < 0 || score > 10) {
-    //     return res.status(400).json({ error: `Score for ${criterion} must be between 0 and 10` });
-    //   }
-    // }
+    // Validate scores
     for (const [criterion, value] of scoreEntries) {
       const score = Number(value);
+
       if (!Number.isFinite(score)) {
         return res.status(400).json({
           error: `Score for ${criterion} must be a valid number`,
         });
       }
+
+      if (score < 0) {
+        return res.status(400).json({
+          error: `Score for ${criterion} cannot be negative`,
+        });
+      }
     }
 
+    // Calculate / validate total
     const total = Number(
       providedTotal ??
-        Object.values(scores).reduce((sum, s) => sum + Number(s), 0),
+        Object.values(scores).reduce(
+          (sum, score) => sum + Number(score),
+          0
+        )
     );
+
     if (!Number.isFinite(total)) {
-      return res.status(400).json({ error: "Evaluation total is invalid" });
+      return res.status(400).json({
+        error: "Evaluation total is invalid",
+      });
     }
 
-    // Check if jury already submitted for this team
     const evaluations = await db.getTable("evaluations");
-    if (evaluations[teamId] && evaluations[teamId][juryId]) {
-      return res
-        .status(400)
-        .json({ error: "This jury already submitted scores for this team" });
-    }
 
-    // Create evaluation record
+    // Make sure team object exists
     if (!evaluations[teamId]) {
       evaluations[teamId] = {};
     }
 
-    evaluations[teamId][juryId] = {
+    const existingEvaluation = evaluations[teamId][juryId];
+
+    const evaluation = {
       scores,
       total,
       submittedAt: new Date().toISOString(),
       submittedBy: juryId,
     };
 
+    // Preserve original submission timestamp if this is an update
+    if (existingEvaluation?.submittedAt) {
+      evaluation.createdAt =
+        existingEvaluation.createdAt ||
+        existingEvaluation.submittedAt;
+    } else {
+      evaluation.createdAt = evaluation.submittedAt;
+    }
+
+    // Save / overwrite evaluation
+    evaluations[teamId][juryId] = evaluation;
+
     await db.setTable("evaluations", evaluations);
-    res
-      .status(201)
-      .json({ success: true, evaluation: evaluations[teamId][juryId] });
+
+    res.status(existingEvaluation ? 200 : 201).json({
+      success: true,
+      updated: !!existingEvaluation,
+      evaluation,
+    });
   } catch (error) {
     console.error("Submit evaluation error:", error);
-    res.status(500).json({ error: "Internal server error" });
+
+    res.status(500).json({
+      error: "Internal server error",
+    });
   }
 });
 
