@@ -1009,24 +1009,6 @@ function JuryDashboard({
                 : "Confirm ranking submission"}
             </h3>
 
-            <p>
-              <strong>Team:</strong> {confirmationSummary.teamName}
-            </p>
-
-            <p>
-              <strong>Organisation:</strong>{" "}
-              {confirmationSummary.organisationName}
-            </p>
-
-            <p>
-              <strong>Category:</strong> {confirmationSummary.category}
-            </p>
-
-            <p>
-              <strong>Hall:</strong> {confirmationSummary.hallId}{" "}
-              <strong>Day:</strong> {confirmationSummary.assignedDay}
-            </p>
-
             {/* Previous total */}
             {selectedTeamSubmission && (
               <div
