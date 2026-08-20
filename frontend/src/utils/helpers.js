@@ -19,6 +19,13 @@ export const getContestScopedItems = (items = [], contestId) => {
   return items.filter(item => item.contestId === contestId);
 };
 
+export const getHallLabel = (appState = {}, contestId, hallId) => {
+  const contest = (appState.contests || []).find(item => item.id === contestId);
+  const hallName = contest?.hallNames?.[hallId];
+
+  return hallName ? `${hallName} (Hall ${hallId})` : `Hall ${hallId}`;
+};
+
 export const calculateWeightedTotal = (scores = {}, criteria = []) => {
   // if (!criteria.length) {
   //   return Object.values(scores).reduce((sum, value) => sum + Number(value || 0), 0);

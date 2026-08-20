@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 import { teamsAPI } from "../utils/api.js";
 import { showToast } from "../utils/notify.js";
+import { getHallLabel } from "../utils/helpers.js";
 
 const EXPECTED_HEADERS = [
   "Contest",
@@ -433,7 +434,7 @@ function TeamImportModal({
 
                     <td>{row.assignedDay}</td>
 
-                    <td>{row.hallId}</td>
+                    <td>{getHallLabel({ contests }, row.contest?.id, row.hallId)}</td>
 
                     <td>
                       {row.errors.length === 0 ? (

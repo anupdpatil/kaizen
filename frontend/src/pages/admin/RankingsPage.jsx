@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { calculateTeamScore, getActiveContestId } from "../../utils/helpers.js";
+import { calculateTeamScore, getActiveContestId, getHallLabel } from "../../utils/helpers.js";
 import { CATEGORY_WISE_EVALUATION_CRITERIA } from "../../constants/categoryWiseEvaluationCriteria.js";
 
 function RankingsPage({ appState }) {
@@ -42,6 +42,7 @@ function RankingsPage({ appState }) {
           r.team.organisationName || "",
           r.team.category || "",
           String(r.team.hallId),
+          getHallLabel(appState, r.team.contestId, r.team.hallId),
           String(r.team.assignedDay),
         ]
           .join(" ")
@@ -85,6 +86,7 @@ function RankingsPage({ appState }) {
         return String(aValue).localeCompare(String(bValue)) * direction;
       });
   }, [
+    appState.contests,
     appState.evaluations,
     appState.teams,
     activeContestId,
@@ -393,7 +395,7 @@ function RankingsPage({ appState }) {
                       <td>{r.team.category || "Other"}</td>
 
                       {/* Hall */}
-                      <td>{r.team.hallId}</td>
+                      <td>{getHallLabel(appState, r.team.contestId, r.team.hallId)}</td>
 
                       {/* Day */}
                       <td>{r.team.assignedDay}</td>

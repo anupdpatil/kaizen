@@ -1,4 +1,4 @@
-import { calculateTeamScore, getActiveContestId } from '../../utils/helpers.js';
+import { calculateTeamScore, getActiveContestId, getHallLabel } from '../../utils/helpers.js';
 import { CATEGORY_WISE_EVALUATION_CRITERIA } from '../../constants/categoryWiseEvaluationCriteria.js';
 
 function ExportsPage({ appState }) {
@@ -36,7 +36,7 @@ function ExportsPage({ appState }) {
           TeamName: t.teamName,
           OrganisationName: t.organisationName || t.teamName,
           Category: t.category || 'Other',
-          Hall: t.hallId,
+          Hall: getHallLabel(appState, t.contestId, t.hallId),
           Day: t.assignedDay,
           WeightedScore: score ? Number(score).toFixed(2) : '-'
         };
@@ -62,7 +62,7 @@ function ExportsPage({ appState }) {
         const avgScore = scores.length > 0 ? (scores.reduce((a, b) => a + b) / scores.length).toFixed(2) : '-';
         data.push({
           Contest: contest.name,
-          Hall: hall,
+          Hall: getHallLabel(appState, contest.id, hall),
           TeamsCount: hallTeams.length,
           CompletedCount: scores.length,
           AverageWeightedScore: avgScore
@@ -103,7 +103,7 @@ function ExportsPage({ appState }) {
           TeamName: t.teamName,
           OrganisationName: t.organisationName || t.teamName,
           Category: t.category || 'Other',
-          Hall: t.hallId,
+          Hall: getHallLabel(appState, t.contestId, t.hallId),
           Day: t.assignedDay,
           Jury1: jury1Name,
           WeightedScore1: score1,
@@ -137,7 +137,7 @@ function ExportsPage({ appState }) {
             TeamName: t.teamName,
             OrganisationName: t.organisationName || t.teamName,
             Category: t.category || 'Other',
-            Hall: t.hallId,
+            Hall: getHallLabel(appState, t.contestId, t.hallId),
             Day: t.assignedDay,
             JuryName: jury?.name || 'Unknown'
           };

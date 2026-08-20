@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { assignmentsAPI } from "../../utils/api.js";
 import { showToast } from "../../utils/notify.js";
+import { getHallLabel } from "../../utils/helpers.js";
 
 function AssignmentsPage({ appState, updateState }) {
   const [form, setForm] = useState({
@@ -47,6 +48,7 @@ function AssignmentsPage({ appState, updateState }) {
           contest?.name,
           String(assignment.day),
           String(assignment.hallId),
+          getHallLabel(appState, assignment.contestId, assignment.hallId),
           jury1?.name,
           jury2?.name,
         ]
@@ -450,7 +452,7 @@ function AssignmentsPage({ appState, updateState }) {
                   (_, i) => i + 1,
                 ).map((h) => (
                   <option key={h} value={h}>
-                    Hall {h}
+                    {getHallLabel(appState, form.contestId, h)}
                   </option>
                 ))}
               </select>
@@ -776,7 +778,7 @@ function AssignmentsPage({ appState, updateState }) {
 
                         <td>{a.day}</td>
 
-                        <td>{a.hallId}</td>
+                        <td>{getHallLabel(appState, a.contestId, a.hallId)}</td>
 
                         <td>{jury1?.name}</td>
 

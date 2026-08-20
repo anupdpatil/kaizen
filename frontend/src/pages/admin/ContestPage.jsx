@@ -9,6 +9,7 @@ function ContestPage({ appState, updateState }) {
     startDate: new Date().toISOString().split("T")[0],
     days: "",
     hallCount: "",
+    hallNames: {},
   });
 
   const [formData, setFormData] = useState(getEmptyForm());
@@ -141,6 +142,7 @@ function ContestPage({ appState, updateState }) {
       startDate: contest.startDate,
       days: contest.days,
       hallCount: contest.hallCount,
+      hallNames: contest.hallNames || {},
     });
   };
 
@@ -392,16 +394,52 @@ function ContestPage({ appState, updateState }) {
                   type="number"
                   value={formData.hallCount}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
+                    setFormData((current) => ({
+                      ...current,
                       hallCount: parseInt(e.target.value),
-                    })
+                      hallNames: Object.fromEntries(
+                        Object.entries(current.hallNames || {}).filter(
+                          ([hallId]) => Number(hallId) <= parseInt(e.target.value),
+                        ),
+                      ),
+                    }))
                   }
                   min="1"
                   required
                   disabled={loading}
                 />
               </div>
+
+              {Number.isInteger(formData.hallCount) && formData.hallCount > 0 && (
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label>Hall names <small style={{ color: "var(--text-secondary)" }}>(optional)</small></label>
+                  <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                    gap: "0.75rem",
+                    marginTop: "0.5rem",
+                  }}>
+                    {Array.from({ length: formData.hallCount }, (_, index) => index + 1).map((hallId) => (
+                      <div className="form-group" key={hallId} style={{ margin: 0 }}>
+                        <label>Hall {hallId}</label>
+                        <input
+                          type="text"
+                          value={formData.hallNames?.[hallId] || ""}
+                          onChange={(e) => setFormData((current) => ({
+                            ...current,
+                            hallNames: {
+                              ...current.hallNames,
+                              [hallId]: e.target.value,
+                            },
+                          }))}
+                          placeholder={`e.g., Auditorium ${hallId}`}
+                          disabled={loading}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div
                 style={{

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import * as XLSX from "xlsx";
-import { getActiveContestId } from "../../utils/helpers.js";
+import { getActiveContestId, getHallLabel } from "../../utils/helpers.js";
 
 function ResultsPage({ appState }) {
   const [hallFilter, setHallFilter] = useState("");
@@ -62,7 +62,7 @@ function ResultsPage({ appState }) {
           t.teamName,
           t.organisationName || "",
           t.category || "",
-          String(t.hallId),
+          getHallLabel(appState, t.contestId, t.hallId),
           String(t.assignedDay),
         ]
           .join(" ")
@@ -137,6 +137,8 @@ function ResultsPage({ appState }) {
           hallId:
             team.hallId,
 
+          hallLabel: getHallLabel(appState, team.contestId, team.hallId),
+
           teamName:
             team.teamName,
 
@@ -177,6 +179,7 @@ function ResultsPage({ appState }) {
         );
       });
   }, [
+    appState.contests,
     appState.evaluations,
     appState.juries,
     appState.teams,
@@ -236,7 +239,7 @@ function ResultsPage({ appState }) {
     const excelData = results.map(
       (r, index) => ({
         "Sr. No.": index + 1,
-        Hall: r.hallId,
+        Hall: r.hallLabel,
         Team: r.teamName,
         Organisation:
           r.organisationName || "N/A",
@@ -316,8 +319,7 @@ function ResultsPage({ appState }) {
                 Filter by Hall
               </label>
 
-              <input
-                type="number"
+              <select
                 value={hallFilter}
                 onChange={(e) => {
                   setHallFilter(
@@ -325,8 +327,12 @@ function ResultsPage({ appState }) {
                   );
                   setCurrentPage(1);
                 }}
-                placeholder="All"
-              />
+              >
+                <option value="">All</option>
+                {Array.from({ length: (appState.contests || []).find((contest) => contest.id === activeContestId)?.hallCount || 0 }, (_, index) => index + 1).map((hallId) => (
+                  <option key={hallId} value={hallId}>{getHallLabel(appState, activeContestId, hallId)}</option>
+                ))}
+              </select>
             </div>
 
             {/* Category */}
@@ -776,10 +782,7 @@ function ResultsPage({ appState }) {
                         >
                           {/* Hall */}
                           <td>
-                            {
-                              r.team
-                                .hallId
-                            }
+                            {r.hallLabel}
                           </td>
 
                           {/* Team */}

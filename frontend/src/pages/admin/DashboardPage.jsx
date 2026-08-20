@@ -38,6 +38,7 @@ function DashboardPage({ appState }) {
           <h3 style={{ marginBottom: '1rem' }}>Hallwise Completion</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--spacing-md)' }}>
             {Array.from({ length: activeContest.hallCount }, (_, i) => i + 1).map(hallId => {
+              const hallName = activeContest.hallNames?.[hallId];
               const day1 = getHallCompletion(appState, hallId, 1);
               const day2 = getHallCompletion(appState, hallId, 2);
               const total = day1.completed + day2.completed;
@@ -46,7 +47,8 @@ function DashboardPage({ appState }) {
 
               return (
                 <div key={`h${hallId}`} className="card">
-                  <h4>Hall {hallId}</h4>
+                  <h4>{hallName || `Hall ${hallId}`}</h4>
+                  {hallName && <small style={{ color: 'var(--text-secondary)' }}>Hall {hallId}</small>}
                   <div style={{ fontSize: '1.5rem', color: 'var(--primary)', marginBottom: 'var(--spacing-md)' }}>
                     {total}/{totalTeams}
                   </div>

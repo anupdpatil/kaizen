@@ -3,6 +3,7 @@ import { teamsAPI } from "../../utils/api.js";
 import { showToast } from "../../utils/notify.js";
 import { TEAM_CATEGORIES } from "../../constants/teamCategories.js";
 import TeamImportModal from "../../components/TeamImportModal.jsx";
+import { getHallLabel } from "../../utils/helpers.js";
 
 const TEAM_CATEGORY_OPTIONS = Object.keys(TEAM_CATEGORIES);
 
@@ -40,6 +41,7 @@ function TeamsPage({ appState, updateState }) {
             team.organisationName || "",
             team.category || "",
             String(team.hallId),
+            getHallLabel(appState, team.contestId, team.hallId),
             String(team.assignedDay),
           ]
             .join(" ")
@@ -64,7 +66,7 @@ function TeamsPage({ appState, updateState }) {
       });
 
     return sorted;
-  }, [appState.teams, searchTerm, sortConfig]);
+  }, [appState.contests, appState.teams, searchTerm, sortConfig]);
 
   const totalPages = Math.max(1, Math.ceil(filteredTeams.length / pageSize));
   const paginatedTeams = filteredTeams.slice(
@@ -365,24 +367,18 @@ function TeamsPage({ appState, updateState }) {
 
               <div className="form-group">
                 <label className="required">Hall</label>
-                <input
-                  type="number"
+                <select
                   value={newTeam.hallId}
-                  onChange={(e) => {
-                    const nextValue = parseInt(e.target.value) || 1;
-                    const validValue = selectedContest
-                      ? Math.min(
-                          Math.max(nextValue, 1),
-                          selectedContest.hallCount,
-                        )
-                      : nextValue;
-                    setNewTeam({ ...newTeam, hallId: validValue });
-                  }}
-                  min="1"
-                  max={maxHallForContest}
+                  onChange={(e) => setNewTeam({ ...newTeam, hallId: parseInt(e.target.value) || 1 })}
                   required
                   disabled={loading}
-                />
+                >
+                  {Array.from({ length: maxHallForContest }, (_, index) => index + 1).map((hallId) => (
+                    <option key={hallId} value={hallId}>
+                      {getHallLabel(appState, newTeam.contestId, hallId)}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div
@@ -662,7 +658,7 @@ function TeamsPage({ appState, updateState }) {
                         <td>{team.category || "Other"}</td>
                         <td>{TEAM_CATEGORIES[team.category] || "Other"}</td>
                         <td>{team.assignedDay}</td>
-                        <td>{team.hallId}</td>
+                        <td>{getHallLabel(appState, team.contestId, team.hallId)}</td>
                         <td>✓ Active</td>
                         <td>
                           <button

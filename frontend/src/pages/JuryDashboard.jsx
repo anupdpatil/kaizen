@@ -6,6 +6,7 @@ import { CATEGORY_WISE_EVALUATION_CRITERIA } from "../constants/categoryWiseEval
 import {
   calculateWeightedTotal,
   getActiveContestId,
+  getHallLabel,
 } from "../utils/helpers.js";
 import "../styles/jury.css";
 
@@ -465,7 +466,7 @@ function JuryDashboard({
         <small>{team.organisationName || "N/A"}</small>
 
         <small>
-          {team.category || "Other"} • Hall {team.hallId}, Day{" "}
+          {team.category || "Other"} • {getHallLabel(appState, team.contestId, team.hallId)}, Day{" "}
           {team.assignedDay}
         </small>
 
@@ -1071,7 +1072,7 @@ function JuryDashboard({
                 onClick={handleConfirmSubmission}
                 disabled={
                   loading ||
-                  selectedTeamSubmission.total === confirmationSummary.total
+                  selectedTeamSubmission?.total === confirmationSummary.total
                 }
               >
                 {loading

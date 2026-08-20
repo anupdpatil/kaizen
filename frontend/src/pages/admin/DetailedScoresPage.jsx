@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
-import { getActiveContestId } from "../../utils/helpers.js";
+import { getActiveContestId, getHallLabel } from "../../utils/helpers.js";
 import { CATEGORY_WISE_EVALUATION_CRITERIA } from "../../constants/categoryWiseEvaluationCriteria.js";
 
 function DetailedScoresPage({ appState }) {
   const [selectedTeamId, setSelectedTeamId] = useState("");
-  const [sortBy, setSortBy] = useState("jury");
+  const [selectedJuryId, setSelectedJuryId] = useState("");
 
   const activeContestId = getActiveContestId(appState);
 
@@ -30,17 +30,17 @@ function DetailedScoresPage({ appState }) {
         return {
           juryId,
           juryName: jury?.name || "Unknown",
-          scores: evaluation.scores || {},
-          total: evaluation.total || 0,
-          submittedAt: evaluation.submittedAt,
+          scores: evaluation?.scores || {},
+          total: evaluation?.total || 0,
+          submittedAt: evaluation?.submittedAt,
         };
       })
-      .sort((a, b) => {
-        if (sortBy === "jury") return a.juryName.localeCompare(b.juryName);
-        if (sortBy === "score") return b.total - a.total;
-        return 0;
-      });
-  }, [selectedTeamId_actual, appState.evaluations, appState.juries, sortBy]);
+      .sort((a, b) => a.juryName.localeCompare(b.juryName));
+  }, [selectedTeamId_actual, appState.evaluations, appState.juries]);
+
+  const selectedJuryScore =
+    detailedScores.find((score) => score.juryId === selectedJuryId) ||
+    detailedScores[0];
 
   const categories = selectedTeam
     ? [selectedTeam.category || "Allied Case Study"]
@@ -59,7 +59,7 @@ function DetailedScoresPage({ appState }) {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "1fr",
             gap: "var(--spacing-md)",
           }}
         >
@@ -69,7 +69,10 @@ function DetailedScoresPage({ appState }) {
             </label>
             <select
               value={selectedTeamId_actual || ""}
-              onChange={(e) => setSelectedTeamId(e.target.value)}
+              onChange={(e) => {
+                setSelectedTeamId(e.target.value);
+                setSelectedJuryId("");
+              }}
               style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
             >
               {teams.map((team) => (
@@ -79,30 +82,21 @@ function DetailedScoresPage({ appState }) {
               ))}
             </select>
           </div>
-
-          <div>
-            <label>
-              <strong>Sort By</strong>
-            </label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              style={{ width: "100%", padding: "0.5rem", marginTop: "0.5rem" }}
-            >
-              <option value="jury">Jury Name</option>
-              <option value="score">Score (High to Low)</option>
-            </select>
-          </div>
         </div>
       </div>
 
       {selectedTeam && (
         <div className="card">
           <div
+            className="card"
             style={{
-              marginBottom: "1.5rem",
-              paddingBottom: "1rem",
-              borderBottom: "1px solid var(--color-border)",
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              gap: "16px",
+              marginBottom: "0.5rem",
+              width: "100%",
+              background: "#F5F7FA",
             }}
           >
             <h3>
@@ -111,12 +105,19 @@ function DetailedScoresPage({ appState }) {
             <p
               style={{
                 color: "var(--color-text-secondary)",
-                marginTop: "0.5rem",
+                // marginTop: "0.5rem",
               }}
             >
               Category: <strong>{selectedTeam.category || "Other"}</strong> |
-              Hall: <strong>{selectedTeam.hallId}</strong> | Day:{" "}
-              <strong>{selectedTeam.assignedDay}</strong>
+              Hall:{" "}
+              <strong>
+                {getHallLabel(
+                  appState,
+                  selectedTeam.contestId,
+                  selectedTeam.hallId,
+                )}
+              </strong>{" "}
+              | Day: <strong>{selectedTeam.assignedDay}</strong>
             </p>
           </div>
 
@@ -131,85 +132,145 @@ function DetailedScoresPage({ appState }) {
               No evaluations submitted yet for this team
             </p>
           ) : (
-            detailedScores.map((juryScore, idx) => (
+            <>
               <div
-              className="card"
-                key={idx}
+                role="tablist"
+                aria-label="Jury evaluations"
                 style={{
-                  marginBottom: "2rem",
-                  paddingBottom: "1.5rem",
-                  borderBottom:
-                    idx < detailedScores.length - 1
-                      ? "1px solid var(--color-border)"
-                      : "none",
+                  display: "flex",
+                  gap: "0.5rem",
+                  marginBottom: "1.5rem",
+                  borderBottom: "1px solid var(--color-border)",
+                  overflowX: "auto",
                 }}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: "1rem",
-                  }}
-                >
-                  <h4 style={{ margin: 0 }}>{juryScore.juryName}</h4>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "1rem",
-                      alignItems: "center",
-                    }}
-                  >
-                    <span
+                {detailedScores.map((juryScore) => {
+                  const isSelected =
+                    juryScore.juryId === selectedJuryScore?.juryId;
+
+                  return (
+                    <button
+                      key={juryScore.juryId}
+                      type="button"
+                      role="tab"
+                      aria-selected={isSelected}
+                      className="btn"
+                      onClick={() => setSelectedJuryId(juryScore.juryId)}
                       style={{
-                        backgroundColor: "var(--color-accent)",
-                        padding: "0.5rem 1rem",
-                        borderRadius: "4px",
-                        fontWeight: "bold",
-                        color: "white",
+                        borderRadius: "var(--radius-md) var(--radius-md) 0 0",
+                        border: isSelected
+                          ? "1px solid var(--primary-dark)"
+                          : "1px solid var(--border)",
+                        borderBottom: isSelected
+                          ? "3px solid var(--primary-dark)"
+                          : "3px solid transparent",
+                        background: isSelected
+                          ? "var(--primary)"
+                          : "var(--surface-alt)",
+                        color: isSelected ? "#fff" : "var(--text-secondary)",
+                        fontWeight: isSelected ? 700 : 500,
+                        boxShadow: isSelected
+                          ? "0 2px 6px rgba(0, 139, 139, 0.25)"
+                          : "none",
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      Total: {juryScore.total}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "0.85rem",
-                        color: "var(--color-text-secondary)",
-                      }}
-                    ><u>Submitted on:</u> {" "}
-                      {new Date(juryScore.submittedAt).toLocaleDateString()}{" "}
-                      {new Date(juryScore.submittedAt).toLocaleTimeString()}
-                    </span>
-                  </div>
-                </div>
+                      {juryScore.juryName}
+                    </button>
+                  );
+                })}
+              </div>
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-                    gap: "1rem",
-                  }}
-                >
-                  {criteria.map((c, criterionIdx) => (
+              {selectedJuryScore &&
+                detailedScores
+                  .filter(
+                    (juryScore) =>
+                      juryScore.juryId === selectedJuryScore.juryId,
+                  )
+                  .map((juryScore) => (
                     <div
                       className="card"
-                      key={criterionIdx}
+                      key={juryScore.juryId}
                       style={{
-                        padding: "0.75rem",
-                        backgroundColor: "var(--color-background-secondary)",
-                        borderRadius: "4px",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
+                        paddingBottom: "1.5rem",
                       }}
                     >
-                      <div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: "1rem",
+                        }}
+                      >
+                        <h4 style={{ margin: 0 }}>{juryScore.juryName}</h4>
                         <div
-                          style={{ fontWeight: "500", marginBottom: "0.25rem" }}
+                          style={{
+                            display: "flex",
+                            gap: "1rem",
+                            alignItems: "center",
+                          }}
                         >
-                          {c.criterion}
+                          <span
+                            style={{
+                              backgroundColor: "var(--color-accent)",
+                              padding: "0.5rem 1rem",
+                              borderRadius: "4px",
+                              fontWeight: "bold",
+                              color: "white",
+                            }}
+                          >
+                            Total: {juryScore.total}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "0.85rem",
+                              color: "var(--color-text-secondary)",
+                            }}
+                          >
+                            <u>Submitted on:</u>{" "}
+                            {new Date(
+                              juryScore.submittedAt,
+                            ).toLocaleDateString()}{" "}
+                            {new Date(
+                              juryScore.submittedAt,
+                            ).toLocaleTimeString()}
+                          </span>
                         </div>
-                        {/* <div
+                      </div>
+
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns:
+                            "repeat(auto-fit, minmax(300px, 1fr))",
+                          gap: "1rem",
+                        }}
+                      >
+                        {criteria.map((c, criterionIdx) => (
+                          <div
+                            className="card"
+                            key={criterionIdx}
+                            style={{
+                              padding: "0.75rem",
+                              backgroundColor:
+                                "var(--color-background-secondary)",
+                              borderRadius: "4px",
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <div>
+                              <div
+                                style={{
+                                  fontWeight: "500",
+                                  marginBottom: "0.25rem",
+                                }}
+                              >
+                                {c.criterion}
+                              </div>
+                              {/* <div
                           style={{
                             fontSize: "0.85rem",
                             color: "var(--color-text-secondary)",
@@ -217,26 +278,27 @@ function DetailedScoresPage({ appState }) {
                         >
                           Weight: {c.weightage} marks
                         </div> */}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "1.25rem",
-                          fontWeight: "bold",
-                          color:
-                            juryScore.scores[c.criterion] !== undefined
-                              ? "var(--color-accent)"
-                              : "var(--color-text-secondary)",
-                        }}
-                      >
-                        {juryScore.scores[c.criterion] !== undefined
-                          ? `${juryScore.scores[c.criterion]}/${c.weightage}`
-                          : "-"}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "1.25rem",
+                                fontWeight: "bold",
+                                color:
+                                  juryScore.scores[c.criterion] !== undefined
+                                    ? "var(--color-accent)"
+                                    : "var(--color-text-secondary)",
+                              }}
+                            >
+                              {juryScore.scores[c.criterion] !== undefined
+                                ? `${juryScore.scores[c.criterion]}/${c.weightage}`
+                                : "-"}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
-                </div>
-              </div>
-            ))
+            </>
           )}
         </div>
       )}

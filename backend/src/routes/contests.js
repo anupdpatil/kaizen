@@ -6,6 +6,18 @@ import { logActivity } from '../utils/activity.js';
 
 const router = express.Router();
 
+const normalizeHallNames = (hallNames, hallCount) => {
+  if (!hallNames || typeof hallNames !== 'object' || Array.isArray(hallNames)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(hallNames)
+      .map(([hallId, name]) => [Number(hallId), String(name ?? '').trim()])
+      .filter(([hallId, name]) => Number.isInteger(hallId) && hallId >= 1 && hallId <= hallCount && name)
+  );
+};
+
 // GET all contests
 router.get('/', async (req, res) => {
   try {
@@ -20,7 +32,7 @@ router.get('/', async (req, res) => {
 // POST create contest
 router.post('/', adminMiddleware, async (req, res) => {
   try {
-    const { name, code, startDate, days, hallCount } = req.body;
+    const { name, code, startDate, days, hallCount, hallNames } = req.body;
 
     if (!name || !code || !startDate || !days || !hallCount) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -32,13 +44,15 @@ router.post('/', adminMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Contest code already exists' });
     }
 
+    const parsedHallCount = parseInt(hallCount, 10);
     const newContest = {
       id: uuidv4(),
       name,
       code,
       startDate,
       days: parseInt(days),
-      hallCount: parseInt(hallCount),
+      hallCount: parsedHallCount,
+      hallNames: normalizeHallNames(hallNames, parsedHallCount),
       deletedHalls: [],
       status: 'active',
       published: false,
@@ -65,13 +79,23 @@ router.post('/', adminMiddleware, async (req, res) => {
 router.put('/:id', adminMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, startDate, days, hallCount, status } = req.body;
+    const { name, startDate, days, hallCount, hallNames, status } = req.body;
+    const parsedHallCount = hallCount ? parseInt(hallCount, 10) : undefined;
+    const contests = await db.getTable('contests');
+    const contest = contests.find(item => item.id === id);
+
+    if (!contest) {
+      return res.status(404).json({ error: 'Contest not found' });
+    }
+
+    const nextHallCount = parsedHallCount || contest.hallCount;
 
     const updated = await db.update('contests', id, {
       ...(name && { name }),
       ...(startDate && { startDate }),
       ...(days && { days: parseInt(days) }),
-      ...(hallCount && { hallCount: parseInt(hallCount) }),
+      ...(parsedHallCount && { hallCount: parsedHallCount }),
+      ...(hallNames !== undefined && { hallNames: normalizeHallNames(hallNames, nextHallCount) }),
       ...(status && { status })
     });
 
