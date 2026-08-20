@@ -54,7 +54,7 @@ function JuryDashboard({
     return (
       <div className="jury-layout">
         <header className="jury-header">
-          <h1>Kaizen Jury Dashboard</h1>
+          <h1>Jury Dashboard</h1>
 
           <div className="header-right">
             <span className="user-badge">
@@ -480,7 +480,7 @@ function JuryDashboard({
         {/* ======================================================
             EDIT BUTTON FOR SUBMITTED TEAM
             ====================================================== */}
-        {isSubmitted && (
+        {/* {isSubmitted && (
           <span
             role="button"
             tabIndex={0}
@@ -510,7 +510,7 @@ function JuryDashboard({
           >
             <button className="btn btn-secondary btn-sm">✎</button>
           </span>
-        )}
+        )} */}
       </button>
     );
   };
@@ -526,7 +526,7 @@ function JuryDashboard({
           HEADER
           ======================================================== */}
       <header className="jury-header">
-        <h1>Kaizen Jury Dashboard</h1>
+        <h1>Jury Dashboard</h1>
 
         <div className="header-right">
           <span className="user-badge">
@@ -805,41 +805,54 @@ function JuryDashboard({
           <div className="card" id="jury-scoring-form">
             {selectedTeam ? (
               <>
-                <h3>{selectedTeam.teamName}</h3>
-
-                <p
+                <div className="card"
                   style={{
-                    color: "var(--text-secondary)",
-                    marginBottom: "0.25rem",
-                  }}
-                >
-                  {selectedTeam.organisationName || "N/A"}
-                </p>
-
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    justifyContent: "space-between",
+                    gap: "16px",
                     marginBottom: "0.75rem",
-                    padding: "4px 10px",
-                    borderRadius: "999px",
-                    background: "rgba(0, 139, 139, 0.08)",
-                    color: "var(--primary)",
-                    fontWeight: 600,
-                    fontSize: "0.75rem",
+                    width: "100%",
+                    background: "#F5F7FA",
                   }}
                 >
-                  {selectedTeamCategoryGroup}
+                  <div>
+                    <h3>{selectedTeam.teamName}</h3>
+                    <p
+                      style={{
+                        color: "var(--text-secondary)",
+                        marginBottom: "0.25rem",
+                      }}
+                    >
+                      {selectedTeam.organisationName || "N/A"}
+                    </p>
+                  </div>
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "middle",
+                      marginBottom: "0.75rem",
+                      marginRight: "2rem",
+                      padding: "4px 10px",
+                      borderRadius: "999px",
+                      background: "rgba(0, 139, 139, 0.08)",
+                      color: "var(--primary)",
+                      fontWeight: 600,
+                      fontSize: "0.75rem",
+                    }}
+                  >
+                    {selectedTeamCategoryGroup}
+                  </div>
                 </div>
 
-                <p
+                {/* <p
                   style={{
                     color: "var(--text-secondary)",
                   }}
                 >
                   {selectedTeam.category || "Other"} • Hall{" "}
                   {selectedTeam.hallId} • Day {selectedTeam.assignedDay}
-                </p>
+                </p> */}
 
                 {/* ==================================================
                     READ ONLY NOTICE
@@ -872,6 +885,7 @@ function JuryDashboard({
                     display: "grid",
                     gridTemplateColumns: "1fr 1fr",
                     gap: "var(--spacing-md)",
+                    marginTop: "2rem",
                   }}
                 >
                   {criteria.map(({ criterion, weightage }) => (
@@ -945,10 +959,6 @@ function JuryDashboard({
                     className="btn btn-primary btn-lg w-full"
                     onClick={handleReviewSubmission}
                     disabled={loading}
-                    // style={{
-                    //   marginTop:
-                    //     'var(--spacing-lg)'
-                    // }}
                   >
                     {loading
                       ? "Saving..."
@@ -1059,7 +1069,10 @@ function JuryDashboard({
               <button
                 className="btn btn-primary"
                 onClick={handleConfirmSubmission}
-                disabled={loading}
+                disabled={
+                  loading ||
+                  selectedTeamSubmission.total === confirmationSummary.total
+                }
               >
                 {loading
                   ? "Saving..."
