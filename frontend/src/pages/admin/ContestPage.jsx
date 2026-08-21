@@ -260,6 +260,33 @@ function ContestPage({ appState, updateState }) {
     }
   };
 
+  const handleScoreUpdates = async (contest) => {
+    const allowScoreUpdates = !contest.allowScoreUpdates;
+
+    try {
+      setError("");
+      const response = await contestsAPI.setScoreUpdates(
+        contest.id,
+        allowScoreUpdates,
+      );
+
+      updateState({
+        contests: (appState.contests || []).map((item) =>
+          item.id === contest.id ? response.data : item,
+        ),
+      });
+
+      showToast(
+        allowScoreUpdates
+          ? "Jury score updates enabled for this contest"
+          : "Jury score updates disabled for this contest",
+        "success",
+      );
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to update score settings");
+    }
+  };
+
   return (
     <div>
       <div
@@ -761,6 +788,20 @@ function ContestPage({ appState, updateState }) {
                               {appState.state?.activeContestId === contest.id
                                 ? "Active"
                                 : "Set Active"}
+                            </button>
+
+                            <button
+                              type="button"
+                              className={`btn btn-sm ${
+                                contest.allowScoreUpdates
+                                  ? "btn-primary"
+                                  : "btn-secondary"
+                              }`}
+                              onClick={() => handleScoreUpdates(contest)}
+                            >
+                              {contest.allowScoreUpdates
+                                ? "Disable Score Updates"
+                                : "Allow Score Updates"}
                             </button>
 
                             {!contest.published && (

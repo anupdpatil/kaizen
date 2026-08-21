@@ -32,6 +32,21 @@ router.post("/submit", async (req, res) => {
       });
     }
 
+    if (req.user?.role !== 'jury' || req.user.id !== juryId) {
+      return res.status(403).json({ error: 'Juries can only submit their own scores' });
+    }
+
+    const teams = await db.getTable('teams');
+    const team = teams.find((item) => item.id === teamId && !item.isDeleted);
+
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    if (contestId && contestId !== team.contestId) {
+      return res.status(400).json({ error: 'Team does not belong to this contest' });
+    }
+
     const scoreEntries = Object.entries(scores);
 
     if (scoreEntries.length === 0) {
@@ -80,6 +95,21 @@ router.post("/submit", async (req, res) => {
     }
 
     const existingEvaluation = evaluations[teamId][juryId];
+
+    if (existingEvaluation) {
+      const contests = await db.getTable('contests');
+      const contest = contests.find((item) => item.id === team.contestId && !item.deletedAt);
+
+      if (!contest) {
+        return res.status(404).json({ error: 'Contest not found' });
+      }
+
+      if (!contest.allowScoreUpdates) {
+        return res.status(403).json({
+          error: 'Score updates are currently disabled by the administrator for this contest',
+        });
+      }
+    }
 
     const evaluation = {
       scores,

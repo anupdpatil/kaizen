@@ -105,6 +105,10 @@ function JuryDashboard({
    * ============================================================
    */
   const activeContestId = getActiveContestId(appState);
+  const activeContest = (appState.contests || []).find(
+    (contest) => contest.id === activeContestId,
+  );
+  const canUpdateSubmittedScores = Boolean(activeContest?.allowScoreUpdates);
 
   /*
    * ============================================================
@@ -236,6 +240,10 @@ function JuryDashboard({
       appState.evaluations?.[team.id]?.[user.id] || null;
 
     if (!existingSubmission) {
+      return;
+    }
+
+    if (!canUpdateSubmittedScores) {
       return;
     }
 
@@ -481,7 +489,7 @@ function JuryDashboard({
         {/* ======================================================
             EDIT BUTTON FOR SUBMITTED TEAM
             ====================================================== */}
-        {/* {isSubmitted && (
+        {isSubmitted && canUpdateSubmittedScores && (
           <span
             role="button"
             tabIndex={0}
@@ -511,7 +519,7 @@ function JuryDashboard({
           >
             <button className="btn btn-secondary btn-sm">✎</button>
           </span>
-        )} */}
+        )}
       </button>
     );
   };

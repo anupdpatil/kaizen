@@ -51,6 +51,8 @@ export const contestsAPI = {
   create: (data) => api.post('/contests', data),
   update: (id, data) => api.put(`/contests/${id}`, data),
   delete: (id) => api.delete(`/contests/${id}`),
+  setScoreUpdates: (id, allowScoreUpdates) =>
+    api.post(`/contests/${id}/score-updates`, { allowScoreUpdates }),
   publish: (id) => api.post(`/contests/${id}/publish`),
   unpublish: (id) => api.post(`/contests/${id}/unpublish`)
 };

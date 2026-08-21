@@ -56,6 +56,8 @@ router.post('/', adminMiddleware, async (req, res) => {
       deletedHalls: [],
       status: 'active',
       published: false,
+      // Submitted scores are locked unless an admin enables updates for this contest.
+      allowScoreUpdates: false,
       createdAt: new Date().toISOString()
     };
 
@@ -79,7 +81,7 @@ router.post('/', adminMiddleware, async (req, res) => {
 router.put('/:id', adminMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, startDate, days, hallCount, hallNames, status } = req.body;
+    const { name, startDate, days, hallCount, hallNames, status, allowScoreUpdates } = req.body;
     const parsedHallCount = hallCount ? parseInt(hallCount, 10) : undefined;
     const contests = await db.getTable('contests');
     const contest = contests.find(item => item.id === id);
@@ -96,7 +98,8 @@ router.put('/:id', adminMiddleware, async (req, res) => {
       ...(days && { days: parseInt(days) }),
       ...(parsedHallCount && { hallCount: parsedHallCount }),
       ...(hallNames !== undefined && { hallNames: normalizeHallNames(hallNames, nextHallCount) }),
-      ...(status && { status })
+      ...(status && { status }),
+      ...(typeof allowScoreUpdates === 'boolean' && { allowScoreUpdates })
     });
 
     if (!updated) {
@@ -115,6 +118,38 @@ router.put('/:id', adminMiddleware, async (req, res) => {
     res.json(updated);
   } catch (error) {
     console.error('Update contest error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Enable or disable submitted-score updates for every jury member in a contest.
+router.post('/:id/score-updates', adminMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { allowScoreUpdates } = req.body;
+
+    if (typeof allowScoreUpdates !== 'boolean') {
+      return res.status(400).json({ error: 'allowScoreUpdates must be a boolean' });
+    }
+
+    const updated = await db.update('contests', id, { allowScoreUpdates });
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Contest not found' });
+    }
+
+    await logActivity({
+      actor: req.user?.username,
+      actorRole: req.user?.role,
+      action: allowScoreUpdates ? 'enable_score_updates' : 'disable_score_updates',
+      entityType: 'contest',
+      entityId: id,
+      details: { name: updated.name, allowScoreUpdates }
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Update score-update setting error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
