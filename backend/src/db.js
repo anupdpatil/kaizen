@@ -168,6 +168,31 @@ class Database {
     return writeLock;
   }
 
+  async setEvaluation(teamId, juryId, evaluation) {
+    if (!teamId || !juryId) {
+      throw new Error('teamId and juryId are required to save an evaluation');
+    }
+
+    if (this.useMongo) {
+      const collection = await this.getCollection('evaluations');
+      const fieldPath = `data.${teamId}.${juryId}`;
+      await collection.updateOne({}, { $set: { [fieldPath]: evaluation } }, { upsert: true });
+      return;
+    }
+
+    // Keep the read-modify-write operation together when using file storage.
+    writeLock = writeLock.then(async () => {
+      const evaluations = await this.getTable('evaluations');
+      evaluations[teamId] = { ...(evaluations[teamId] || {}), [juryId]: evaluation };
+      const filePath = await this.getTablePath('evaluations');
+      const tempPath = `${filePath}.tmp`;
+      await fs.writeFile(tempPath, JSON.stringify(evaluations, null, 2));
+      await fs.rename(tempPath, filePath);
+    });
+
+    return writeLock;
+  }
+
   async create(tableName, record) {
     if (this.useMongo) {
       const collection = await this.getCollection(tableName);

@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { authAPI, stateAPI, contestsAPI, juriesAPI, teamsAPI, assignmentsAPI, evaluationsAPI } from './utils/api.js';
+import { useState, useEffect, useCallback } from 'react';
+import { authAPI, stateAPI } from './utils/api.js';
 import LoginPage from './pages/LoginPage.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import JuryDashboard from './pages/JuryDashboard.jsx';
@@ -18,41 +18,7 @@ function App() {
     state: {},
     activity_logs: []
   });
-  const [syncError, setSyncError] = useState(null);
-  const [saveAttempts, setSaveAttempts] = useState(0);
-  const autoSaveTimeoutRef = useRef(null);
-  const isSavingRef = useRef(false);
-
-  // Autosave function
-  const autoSave = useCallback(async (stateToSave) => {
-    if (isSavingRef.current) return;
-
-    isSavingRef.current = true;
-    try {
-      await stateAPI.saveSnapshot(stateToSave);
-      setSaveAttempts(0);
-      setSyncError(null);
-    } catch (err) {
-      console.error('Autosave error:', err);
-      setSaveAttempts(prev => prev + 1);
-      
-      if (saveAttempts >= 2) {
-        setSyncError('Failed to sync data. Please check your connection.');
-      }
-    } finally {
-      isSavingRef.current = false;
-    }
-  }, [saveAttempts]);
-
-  // Debounced autosave
-  const debouncedSave = useCallback((stateToSave) => {
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-    }
-    autoSaveTimeoutRef.current = setTimeout(() => {
-      autoSave(stateToSave);
-    }, 500);
-  }, [autoSave]);
+  const [syncError] = useState(null);
 
   // Initialize app on mount
   useEffect(() => {
@@ -142,10 +108,11 @@ function App() {
 
   // Handle state update
   const updateState = useCallback((newState) => {
-    const mergedState = { ...appState, ...newState };
-    setAppState(mergedState);
-    debouncedSave(mergedState);
-  }, [appState, debouncedSave]);
+    // Every mutation is persisted by its dedicated API endpoint before this
+    // function runs. Sending a whole snapshot here could overwrite a score
+    // just submitted by another jury with an older browser state.
+    setAppState((currentState) => ({ ...currentState, ...newState }));
+  }, []);
 
   if (loading) {
     return (

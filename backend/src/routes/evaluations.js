@@ -127,10 +127,9 @@ router.post("/submit", async (req, res) => {
       evaluation.createdAt = evaluation.submittedAt;
     }
 
-    // Save / overwrite evaluation
-    evaluations[teamId][juryId] = evaluation;
-
-    await db.setTable("evaluations", evaluations);
+    // Persist only this jury/team pair. This avoids one jury's submission
+    // overwriting scores saved by another jury at the same time.
+    await db.setEvaluation(teamId, juryId, evaluation);
 
     res.status(existingEvaluation ? 200 : 201).json({
       success: true,
