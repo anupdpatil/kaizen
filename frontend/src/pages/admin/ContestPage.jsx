@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { contestsAPI } from "../../utils/api.js";
+import { contestsAPI, stateAPI } from "../../utils/api.js";
 import { showToast } from "../../utils/notify.js";
 
 function ContestPage({ appState, updateState }) {
@@ -146,15 +146,19 @@ function ContestPage({ appState, updateState }) {
     });
   };
 
-  const handleSetActiveContest = (contestId) => {
-    updateState({
-      state: {
-        ...(appState.state || {}),
-        activeContestId: contestId,
-      },
-    });
-
-    showToast("Active contest updated", "success");
+  const handleSetActiveContest = async (contestId) => {
+    try {
+      await stateAPI.setActiveContest(contestId);
+      updateState({
+        state: {
+          ...(appState.state || {}),
+          activeContestId: contestId,
+        },
+      });
+      showToast("Active contest updated", "success");
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to update active contest");
+    }
   };
 
   const handleDelete = async (contestId) => {
