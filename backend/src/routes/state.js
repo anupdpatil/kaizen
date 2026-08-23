@@ -1,5 +1,6 @@
 import express from 'express';
 import db from '../db.js';
+import { adminMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -34,12 +35,8 @@ router.post('/snapshot', async (req, res) => {
 });
 
 // Persist the one UI preference that is not managed by a CRUD resource.
-router.post('/active-contest', async (req, res) => {
+router.post('/active-contest', adminMiddleware, async (req, res) => {
   try {
-    if (req.user?.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-
     const { activeContestId } = req.body;
     if (typeof activeContestId !== 'string' || !activeContestId) {
       return res.status(400).json({ error: 'A valid activeContestId is required' });

@@ -46,6 +46,23 @@ try {
     { upsert: true }
   );
 
+  const adminsCollection = database.collection('admins');
+  const adminDocument = await adminsCollection.findOne({ _id: 'data' });
+  const admins = Array.isArray(adminDocument?.data) ? adminDocument.data : [];
+  await adminsCollection.updateOne(
+    { _id: 'data' },
+    {
+      $set: {
+        data: admins.map((admin) => ({
+          ...admin,
+          sessionId: null,
+          sessionExpiresAt: null
+        }))
+      }
+    },
+    { upsert: true }
+  );
+
   const juriesCollection = database.collection('juries');
   const juryDocument = await juriesCollection.findOne({ _id: 'data' });
   const juries = Array.isArray(juryDocument?.data) ? juryDocument.data : [];

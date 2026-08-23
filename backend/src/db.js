@@ -39,6 +39,7 @@ class Database {
   constructor() {
     this.dataDir = DATA_DIR;
     this.tables = {
+      admins: 'admins.json',
       contests: 'contests.json',
       juries: 'juries.json',
       teams: 'teams.json',
@@ -47,6 +48,7 @@ class Database {
       state: 'state.json'
     };
     this.mongoCollections = {
+      admins: 'admins',
       contests: 'contests',
       juries: 'juries',
       teams: 'teams',
@@ -275,7 +277,9 @@ class Database {
     // The initial dashboard hydration needs every collection. Fetch them at
     // once so network latency to MongoDB is paid once rather than once per
     // collection (plus activity logs).
-    const tableNames = Object.keys(this.tables);
+    // Admin credentials are server-only and must never be included in a
+    // browser snapshot.
+    const tableNames = Object.keys(this.tables).filter((tableName) => tableName !== 'admins');
     const tableData = await Promise.all(
       tableNames.map((tableName) => this.getTable(tableName))
     );

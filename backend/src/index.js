@@ -4,6 +4,7 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import db from './db.js';
+import { v4 as uuidv4 } from 'uuid';
 import { productionWriteGuard } from './middleware/productionWriteGuard.js';
 import { authMiddleware, adminMiddleware, createToken, verifyToken } from './middleware/auth.js';
 
@@ -53,12 +54,37 @@ async function initializeApp() {
   try {
     await db.init();
     
-    // Initialize empty database without seed data
+    // Migrate the legacy single administrator into the dedicated admin
+    // collection. Admin records are server-only and support separate access
+    // levels and sessions.
     const state = await db.getTable('state');
+    const admins = await db.getTable('admins');
+    if (!admins.some((admin) => admin.username === 'admin')) {
+      await db.create('admins', {
+        id: 'admin-1',
+        username: 'admin',
+        password: state?.adminPassword || process.env.INITIAL_ADMIN_PASSWORD || 'admin123',
+        access: 'full',
+        isDeleted: false,
+        createdAt: new Date().toISOString()
+      });
+    }
+    if (!admins.some((admin) => admin.username === 'testAdmin')) {
+      await db.create('admins', {
+        id: uuidv4(),
+        username: 'testAdmin',
+        password: 'testPassword',
+        access: 'read_only',
+        isDeleted: false,
+        createdAt: new Date().toISOString()
+      });
+    }
 
-    if (!state?.adminPassword) {
-      const currentState = await db.getTable('state');
-      await db.setTable('state', { ...(currentState || {}), adminPassword: 'admin123' });
+    // The initial migration may have used the legacy value above. Remove it
+    // afterwards so the admins collection is the single credential source.
+    if (state?.adminPassword !== undefined) {
+      const { adminPassword, ...stateWithoutLegacyPassword } = state;
+      await db.setTable('state', stateWithoutLegacyPassword);
     }
 
     console.log('✓ Database initialized (empty)');

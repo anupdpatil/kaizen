@@ -16,17 +16,19 @@ router.post('/login', async (req, res) => {
     }
 
     let user = null;
-    let juryRecord = null;
+    let accountRecord = null;
     const state = await db.getTable('state');
 
     if (role === 'admin') {
-      const adminPassword = state?.adminPassword || 'admin123';
-
-      if (username === 'admin' && password === adminPassword) {
+      const admins = await db.getTable('admins');
+      const admin = admins.find((item) => item.username === username && !item.isDeleted);
+      if (admin && admin.password === password) {
+        accountRecord = admin;
         user = {
-          id: 'admin-1',
-          username: 'admin',
-          role: 'admin'
+          id: admin.id,
+          username: admin.username,
+          role: 'admin',
+          access: admin.access || 'full'
         };
       }
     } else if (role === 'jury') {
@@ -35,7 +37,7 @@ router.post('/login', async (req, res) => {
       const jury = juries.find(j => j.username === username && !j.isDeleted);
 
       if (jury && jury.password === password) {
-        juryRecord = jury;
+        accountRecord = jury;
         user = {
           id: jury.id,
           username: jury.username,
@@ -57,12 +59,8 @@ router.post('/login', async (req, res) => {
     }
 
     const now = Date.now();
-    const existingSessionExpiresAt = user.role === 'admin'
-      ? state?.adminSessionExpiresAt
-      : juryRecord?.sessionExpiresAt;
-    const existingSessionId = user.role === 'admin'
-      ? state?.adminSessionId
-      : juryRecord?.sessionId;
+    const existingSessionExpiresAt = accountRecord?.sessionExpiresAt;
+    const existingSessionId = accountRecord?.sessionId;
 
     if (existingSessionId && new Date(existingSessionExpiresAt || 0).getTime() > now) {
       return res.status(409).json({
@@ -74,10 +72,9 @@ router.post('/login', async (req, res) => {
     const sessionId = uuidv4();
     const sessionExpiresAt = new Date(now + 24 * 60 * 60 * 1000).toISOString();
     if (user.role === 'admin') {
-      await db.setTable('state', {
-        ...(state || {}),
-        adminSessionId: sessionId,
-        adminSessionExpiresAt: sessionExpiresAt
+      await db.update('admins', user.id, {
+        sessionId,
+        sessionExpiresAt
       });
     } else {
       await db.update('juries', user.id, { sessionId, sessionExpiresAt });
@@ -127,11 +124,9 @@ router.post('/verify', async (req, res) => {
 router.post('/logout', authMiddleware, async (req, res) => {
   try {
     if (req.user.role === 'admin') {
-      const state = await db.getTable('state');
-      await db.setTable('state', {
-        ...(state || {}),
-        adminSessionId: null,
-        adminSessionExpiresAt: null
+      await db.update('admins', req.user.id, {
+        sessionId: null,
+        sessionExpiresAt: null
       });
     } else if (req.user.role === 'jury') {
       await db.update('juries', req.user.id, {
@@ -154,10 +149,15 @@ router.post('/logout-all', authMiddleware, adminMiddleware, async (req, res) => 
     const sessionVersion = Number(state?.sessionVersion || 0) + 1;
     await db.setTable('state', {
       ...(state || {}),
-      sessionVersion,
-      adminSessionId: null,
-      adminSessionExpiresAt: null
+      sessionVersion
     });
+
+    const admins = await db.getTable('admins');
+    await db.setTable('admins', admins.map((admin) => ({
+      ...admin,
+      sessionId: null,
+      sessionExpiresAt: null
+    })));
 
     const juries = await db.getTable('juries');
     await db.setTable('juries', juries.map((jury) => ({
@@ -209,26 +209,23 @@ router.post('/change-password', async (req, res) => {
     }
 
     if (decoded.role === 'admin') {
-      if (decoded.username !== 'admin') {
-        return res.status(403).json({ error: 'Admin account mismatch' });
+      const admins = await db.getTable('admins');
+      const admin = admins.find((item) => item.id === decoded.id && !item.isDeleted);
+      if (!admin) {
+        return res.status(404).json({ error: 'Admin account not found' });
       }
-
-      const state = await db.getTable('state');
-      const adminPassword = state?.adminPassword || 'admin123';
-
-      if (currentPassword !== adminPassword) {
+      if (currentPassword !== admin.password) {
         return res.status(400).json({ error: 'Current password is incorrect' });
       }
 
-      const updatedState = { ...(state || {}), adminPassword: newPassword };
-      await db.setTable('state', updatedState);
+      await db.update('admins', admin.id, { password: newPassword });
 
       await logActivity({
-        actor: 'admin',
+        actor: admin.username,
         actorRole: 'admin',
         action: 'password_changed',
         entityType: 'auth',
-        details: { username: 'admin' }
+        details: { username: admin.username }
       });
 
       return res.json({ success: true, message: 'Password updated successfully' });

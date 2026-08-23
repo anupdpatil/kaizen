@@ -6,6 +6,7 @@ import { MongoClient } from 'mongodb';
 
 const CONFIRMATION_FLAG = '--confirm-copy-production-to-development';
 const COLLECTIONS = [
+  'admins',
   'contests',
   'juries',
   'teams',
@@ -104,7 +105,7 @@ try {
         };
       }
 
-      if (collectionName === 'juries' && Array.isArray(document.data)) {
+      if ((collectionName === 'juries' || collectionName === 'admins') && Array.isArray(document.data)) {
         return {
           ...document,
           data: document.data.map((jury) => ({

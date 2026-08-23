@@ -22,3 +22,7 @@ npm run copy-production-to-dev -- --confirm-copy-production-to-development
 ```
 
 The command copies every application collection, first writes a timestamped backup of the existing development database to `backend/data/development-backups/`, and then clears admin and jury session locks in the copied data. Production is read-only during this operation; only `kaizen_dev` is overwritten.
+
+## Admin accounts
+
+Admin accounts are stored only in the server-side `admins` database collection and are excluded from browser snapshots. On server startup, the existing `admin` account is migrated automatically and `testAdmin` / `testPassword` is created with read-only access. Read-only admins can view all admin pages, but the API rejects every create, update, delete, publish, import, and settings change.

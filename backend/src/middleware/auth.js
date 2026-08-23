@@ -9,6 +9,7 @@ export const createToken = (user) => {
       id: user.id,
       username: user.username,
       role: user.role,
+      access: user.access || null,
       mustChangePassword: Boolean(user.mustChangePassword),
       sessionVersion: Number(user.sessionVersion || 0),
       sessionId: user.sessionId
@@ -26,9 +27,11 @@ export const isTokenSessionCurrent = async (decoded) => {
   }
 
   if (decoded.role === 'admin') {
+    const admins = await db.getTable('admins');
+    const admin = admins.find((item) => item.id === decoded.id && !item.isDeleted);
     return Boolean(decoded.sessionId) &&
-      decoded.sessionId === state?.adminSessionId &&
-      new Date(state?.adminSessionExpiresAt || 0).getTime() > now;
+      decoded.sessionId === admin?.sessionId &&
+      new Date(admin?.sessionExpiresAt || 0).getTime() > now;
   }
 
   if (decoded.role === 'jury') {
@@ -93,6 +96,9 @@ export const authMiddleware = async (req, res, next) => {
 export const adminMiddleware = (req, res, next) => {
   if (!req.user || req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
+  }
+  if (req.user.access === 'read_only') {
+    return res.status(403).json({ error: 'This admin account has read-only access.' });
   }
   next();
 };
