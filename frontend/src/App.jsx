@@ -77,7 +77,15 @@ function App() {
   };
 
   // Handle logout
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Tell the server first so this account can sign in from another device.
+    // Local cleanup must still happen if the token has already expired.
+    try {
+      await authAPI.logout();
+    } catch (err) {
+      console.warn('Server logout failed:', err);
+    }
+
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);

@@ -42,7 +42,9 @@ export const authAPI = {
   verify: (token) => 
     api.post('/auth/verify', { token }),
   changePassword: (data) =>
-    api.post('/auth/change-password', data)
+    api.post('/auth/change-password', data),
+  logout: () => api.post('/auth/logout'),
+  logoutAll: () => api.post('/auth/logout-all')
 };
 
 // Contests

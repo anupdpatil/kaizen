@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import PasswordChangeModal from './PasswordChangeModal.jsx';
+import { authAPI } from '../utils/api.js';
 import '../styles/layout.css';
 
 function AdminLayout({ user, currentView, onViewChange, onLogout, syncError, children }) {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [terminatingSessions, setTerminatingSessions] = useState(false);
   const views = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'setup', label: 'Setup', icon: '⚙️' },
@@ -16,6 +18,22 @@ function AdminLayout({ user, currentView, onViewChange, onLogout, syncError, chi
     { id: 'exports', label: 'Exports', icon: '📥' },
     { id: 'activity', label: 'Activity', icon: '🧾' }
   ];
+
+  const handleLogoutAll = async () => {
+    if (!window.confirm('Sign out every user on every device? You will also need to sign in again.')) {
+      return;
+    }
+
+    setTerminatingSessions(true);
+    try {
+      await authAPI.logoutAll();
+      onLogout();
+    } catch (error) {
+      window.alert(error.response?.data?.error || 'Unable to terminate sessions.');
+    } finally {
+      setTerminatingSessions(false);
+    }
+  };
 
   return (
     <div className="admin-layout">
@@ -32,6 +50,9 @@ function AdminLayout({ user, currentView, onViewChange, onLogout, syncError, chi
             </span>
             <button className="btn btn-secondary btn-sm" onClick={() => setShowPasswordModal(true)}>
               Change Password
+            </button>
+            <button className="btn btn-secondary btn-sm" onClick={handleLogoutAll} disabled={terminatingSessions}>
+              {terminatingSessions ? 'Signing out…' : 'Sign Out All'}
             </button>
             <button className="btn btn-secondary btn-sm" onClick={onLogout}>
               Logout

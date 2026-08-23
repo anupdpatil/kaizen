@@ -5,10 +5,41 @@ const JWT_SECRET = process.env.JWT_SECRET || 'kaizen-secret-key-change-in-produc
 
 export const createToken = (user) => {
   return jwt.sign(
-    { id: user.id, username: user.username, role: user.role, mustChangePassword: Boolean(user.mustChangePassword) },
+    {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      mustChangePassword: Boolean(user.mustChangePassword),
+      sessionVersion: Number(user.sessionVersion || 0),
+      sessionId: user.sessionId
+    },
     JWT_SECRET,
     { expiresIn: '24h' }
   );
+};
+
+export const isTokenSessionCurrent = async (decoded) => {
+  const state = await db.getTable('state');
+  const now = Date.now();
+  if (Number(decoded.sessionVersion || 0) !== Number(state?.sessionVersion || 0)) {
+    return false;
+  }
+
+  if (decoded.role === 'admin') {
+    return Boolean(decoded.sessionId) &&
+      decoded.sessionId === state?.adminSessionId &&
+      new Date(state?.adminSessionExpiresAt || 0).getTime() > now;
+  }
+
+  if (decoded.role === 'jury') {
+    const juries = await db.getTable('juries');
+    const jury = juries.find((item) => item.id === decoded.id && !item.isDeleted);
+    return Boolean(decoded.sessionId) &&
+      decoded.sessionId === jury?.sessionId &&
+      new Date(jury?.sessionExpiresAt || 0).getTime() > now;
+  }
+
+  return false;
 };
 
 export const verifyToken = (token) => {
@@ -29,6 +60,15 @@ export const authMiddleware = async (req, res, next) => {
   const decoded = verifyToken(token);
   if (!decoded) {
     return res.status(401).json({ error: 'Invalid token' });
+  }
+
+  try {
+    if (!(await isTokenSessionCurrent(decoded))) {
+      return res.status(401).json({ error: 'Session has been terminated. Please sign in again.' });
+    }
+  } catch (error) {
+    console.error('Session validation failed:', error);
+    return res.status(500).json({ error: 'Authentication check failed' });
   }
 
   req.user = decoded;

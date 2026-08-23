@@ -251,12 +251,21 @@ class Database {
   }
 
   async getAllData() {
-    const result = {};
-    for (const tableName of Object.keys(this.tables)) {
-      result[tableName] = await this.getTable(tableName);
-    }
-    result.activity_logs = await this.getActivityLogs();
-    return result;
+    // The initial dashboard hydration needs every collection. Fetch them at
+    // once so network latency to MongoDB is paid once rather than once per
+    // collection (plus activity logs).
+    const tableNames = Object.keys(this.tables);
+    const tableData = await Promise.all(
+      tableNames.map((tableName) => this.getTable(tableName))
+    );
+    const activityLogs = await this.getActivityLogs();
+
+    return {
+      ...Object.fromEntries(
+        tableNames.map((tableName, index) => [tableName, tableData[index]])
+      ),
+      activity_logs: activityLogs
+    };
   }
 
   async getActivityLogs() {
