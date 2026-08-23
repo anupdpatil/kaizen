@@ -6,6 +6,10 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon --exec node src/index.js",
+    "dev:production-data": "nodemon scripts/start-production-data.js",
+    "copy-production-to-dev": "node scripts/copy-production-to-dev.js",
+    "reset-sessions": "node scripts/reset-sessions.js",
+    "reset-sessions:dev": "node scripts/reset-sessions.js development",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

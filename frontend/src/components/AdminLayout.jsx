@@ -1,11 +1,19 @@
 import { useState } from 'react';
 import PasswordChangeModal from './PasswordChangeModal.jsx';
-import { authAPI } from '../utils/api.js';
+import {
+  areProductionWritesEnabled,
+  authAPI,
+  isProductionDataMode,
+  setProductionWritesEnabled
+} from '../utils/api.js';
 import '../styles/layout.css';
 
 function AdminLayout({ user, currentView, onViewChange, onLogout, syncError, children }) {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [terminatingSessions, setTerminatingSessions] = useState(false);
+  const [productionWritesEnabled, setProductionWritesEnabledState] = useState(
+    areProductionWritesEnabled
+  );
   const views = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'setup', label: 'Setup', icon: '⚙️' },
@@ -35,6 +43,25 @@ function AdminLayout({ user, currentView, onViewChange, onLogout, syncError, chi
     }
   };
 
+  const toggleProductionWrites = () => {
+    if (productionWritesEnabled) {
+      setProductionWritesEnabled(false);
+      setProductionWritesEnabledState(false);
+      return;
+    }
+
+    const confirmation = window.prompt(
+      'You are connected to PRODUCTION data. Type ENABLE PRODUCTION WRITES to continue.'
+    );
+    if (confirmation !== 'ENABLE PRODUCTION WRITES') {
+      window.alert('Production edit mode was not enabled.');
+      return;
+    }
+
+    setProductionWritesEnabled(true);
+    setProductionWritesEnabledState(true);
+  };
+
   return (
     <div className="admin-layout">
       <header className="admin-header">
@@ -44,6 +71,18 @@ function AdminLayout({ user, currentView, onViewChange, onLogout, syncError, chi
             <p>Chatrapati Sambhajinagar Chapter</p>
           </div>
           <div className="header-right">
+            {isProductionDataMode && (
+              <button
+                className="btn btn-sm"
+                style={{
+                  backgroundColor: productionWritesEnabled ? '#b91c1c' : '#92400e',
+                  color: '#fff'
+                }}
+                onClick={toggleProductionWrites}
+              >
+                {productionWritesEnabled ? 'Production Writes: ON' : 'Enable Production Writes'}
+              </button>
+            )}
             <span className="user-badge">
               <strong>{user.username}</strong>
               <small>({user.role})</small>

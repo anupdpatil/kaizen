@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import fs from 'fs/promises';
 import fsSync from 'fs';
 import path from 'path';
@@ -7,6 +7,27 @@ import { MongoClient } from 'mongodb';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+dotenv.config();
+
+// Normal local development always uses the isolated development database. The
+// production-data launcher sets DATABASE_TARGET=production before this module
+// is loaded and therefore intentionally skips this override.
+export const databaseTarget = process.env.DATABASE_TARGET || 'development';
+if (databaseTarget === 'development') {
+  dotenv.config({
+    path: path.join(__dirname, '../.env.development.local'),
+    override: true
+  });
+} else if (databaseTarget === 'production') {
+  dotenv.config({
+    path: path.join(__dirname, '../.env.production-data.local'),
+    override: true
+  });
+} else {
+  throw new Error(`Unsupported DATABASE_TARGET: ${databaseTarget}`);
+}
+
 const DATA_DIR = path.join(__dirname, '../data');
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
 const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || 'kaizen';

@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:production-data": "vite --mode production-data --port 5174",
     "build": "vite build",
     "lint": "eslint . --ext .js,.jsx",
     "preview": "vite preview"

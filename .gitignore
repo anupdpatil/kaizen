@@ -3,6 +3,11 @@ dist/
 build/
 .env
 .env.local
+backend/.env.development.local
+backend/.env.production-data.local
+frontend/.env.development.local
+frontend/.env.production-data.local
+backend/data/development-backups/
 .DS_Store
 *.log
 *.swp

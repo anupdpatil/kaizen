@@ -4,6 +4,7 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import db from './db.js';
+import { productionWriteGuard } from './middleware/productionWriteGuard.js';
 import { authMiddleware, adminMiddleware, createToken, verifyToken } from './middleware/auth.js';
 
 // Import route handlers
@@ -44,7 +45,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Production-Write-Confirmation']
 }));
 
 // Initialize database
@@ -69,12 +70,12 @@ async function initializeApp() {
 
 // Routes
 app.use('/api/auth', authRouter);
-app.use('/api/contests', authMiddleware, contestsRouter);
-app.use('/api/juries', authMiddleware, juriesRouter);
-app.use('/api/teams', authMiddleware, teamsRouter);
-app.use('/api/hall-assignments', authMiddleware, assignmentsRouter);
-app.use('/api/evaluations', authMiddleware, evaluationsRouter);
-app.use('/api/state', authMiddleware, stateRouter);
+app.use('/api/contests', authMiddleware, productionWriteGuard, contestsRouter);
+app.use('/api/juries', authMiddleware, productionWriteGuard, juriesRouter);
+app.use('/api/teams', authMiddleware, productionWriteGuard, teamsRouter);
+app.use('/api/hall-assignments', authMiddleware, productionWriteGuard, assignmentsRouter);
+app.use('/api/evaluations', authMiddleware, productionWriteGuard, evaluationsRouter);
+app.use('/api/state', authMiddleware, productionWriteGuard, stateRouter);
 
 // Block /data access
 app.use('/data', (req, res) => {

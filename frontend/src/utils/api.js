@@ -4,6 +4,18 @@ const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   (window.location.hostname === 'localhost' ? 'http://localhost:4000/api' : 'https://kaizen-yrgj.onrender.com/api');
 
+export const isProductionDataMode = import.meta.env.VITE_PRODUCTION_DATA_MODE === 'true';
+const productionWriteKey = import.meta.env.VITE_PRODUCTION_WRITE_KEY;
+const productionWritesStorageKey = 'production-writes-enabled';
+
+export const areProductionWritesEnabled = () =>
+  isProductionDataMode && sessionStorage.getItem(productionWritesStorageKey) === 'true';
+
+export const setProductionWritesEnabled = (enabled) => {
+  if (!isProductionDataMode) return;
+  sessionStorage.setItem(productionWritesStorageKey, String(Boolean(enabled)));
+};
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -16,6 +28,9 @@ api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  if (areProductionWritesEnabled() && productionWriteKey) {
+    config.headers['X-Production-Write-Confirmation'] = productionWriteKey;
   }
   return config;
 });
