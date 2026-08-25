@@ -8,6 +8,7 @@ backend/.env.production-data.local
 frontend/.env.development.local
 frontend/.env.production-data.local
 backend/data/development-backups/
+backend/migration-reports/
 .DS_Store
 *.log
 *.swp
