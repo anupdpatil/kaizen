@@ -1,32 +1,63 @@
-import { useState, useEffect, useCallback } from 'react';
-import { authAPI, stateAPI } from './utils/api.js';
-import LoginPage from './pages/LoginPage.jsx';
-import AdminDashboard from './pages/AdminDashboard.jsx';
-import JuryDashboard from './pages/JuryDashboard.jsx';
-import ToastContainer from './components/ToastContainer.jsx';
+import { useState, useEffect, useCallback } from "react";
+import { authAPI, stateAPI } from "./utils/api.js";
+import LoginPage from "./pages/LoginPage.jsx";
+import AdminDashboard from "./pages/AdminDashboard.jsx";
+import JuryDashboard from "./pages/JuryDashboard.jsx";
+
+const createInitialAppState = () => ({
+  contests: [],
+  juries: [],
+  teams: [],
+  hall_assignments: [],
+  evaluations: {},
+  state: {},
+  activity_logs: [],
+});
+
+const getTokenExpiration = (token) => {
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+
+    const base64Payload = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const decodedPayload = JSON.parse(
+      atob(
+        base64Payload.padEnd(
+          base64Payload.length + ((4 - (base64Payload.length % 4)) % 4),
+          "=",
+        ),
+      ),
+    );
+    return Number.isFinite(decodedPayload.exp)
+      ? decodedPayload.exp * 1000
+      : null;
+  } catch {
+    return null;
+  }
+};
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [appState, setAppState] = useState({
-    contests: [],
-    juries: [],
-    teams: [],
-    hall_assignments: [],
-    evaluations: {},
-    state: {},
-    activity_logs: []
-  });
+  const [appState, setAppState] = useState(createInitialAppState);
   const [syncError] = useState(null);
+
+  const clearLocalSession = useCallback((message = null) => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    setAppState(createInitialAppState());
+    if (message) setError(message);
+  }, []);
 
   // Initialize app on mount
   useEffect(() => {
     const initApp = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
+        const token = localStorage.getItem("token");
+        const storedUser = localStorage.getItem("user");
 
         if (token && storedUser) {
           // Verify token
@@ -39,16 +70,16 @@ function App() {
             const snapshotResponse = await stateAPI.getSnapshot();
             setAppState(snapshotResponse.data);
           } else {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            setError('Session expired. Please login again.');
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            setError("Session expired. Please login again.");
           }
         }
       } catch (err) {
-        console.error('Init error:', err);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        setError('Failed to initialize. Please login again.');
+        console.error("Init error:", err);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setError("Failed to initialize. Please login again.");
       } finally {
         setLoading(false);
       }
@@ -57,6 +88,38 @@ function App() {
     initApp();
   }, []);
 
+  useEffect(() => {
+    if (!user) return undefined;
+
+    const expireSessionIfNeeded = () => {
+      const expiration = getTokenExpiration(
+        localStorage.getItem("token") || "",
+      );
+      if (!expiration || expiration <= Date.now()) {
+        clearLocalSession("Session expired. Please login again.");
+        return true;
+      }
+      return false;
+    };
+
+    if (expireSessionIfNeeded()) return undefined;
+
+    const expiration = getTokenExpiration(localStorage.getItem("token") || "");
+    const timeoutId = window.setTimeout(
+      () => clearLocalSession("Session expired. Please login again."),
+      Math.max(0, expiration - Date.now()),
+    );
+    const handleFocus = () => expireSessionIfNeeded();
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
+  }, [clearLocalSession, user]);
+
   // Handle login
   const handleLogin = async (username, password, role) => {
     try {
@@ -64,15 +127,15 @@ function App() {
       const response = await authAPI.login(username, password, role);
       const { token, user: userData } = response.data;
 
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
 
       // Fetch snapshot
       const snapshotResponse = await stateAPI.getSnapshot();
       setAppState(snapshotResponse.data);
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed');
+      setError(err.response?.data?.error || "Login failed");
     }
   };
 
@@ -83,34 +146,23 @@ function App() {
     try {
       await authAPI.logout();
     } catch (err) {
-      console.warn('Server logout failed:', err);
+      console.warn("Server logout failed:", err);
     }
 
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-    setAppState({
-      contests: [],
-      juries: [],
-      teams: [],
-      hall_assignments: [],
-      evaluations: {},
-      state: {},
-      activity_logs: []
-    });
+    clearLocalSession();
   };
 
   const handlePasswordChanged = (updatedUser) => {
     if (!updatedUser) {
       const nextUser = user ? { ...user, mustChangePassword: false } : null;
       if (nextUser) {
-        localStorage.setItem('user', JSON.stringify(nextUser));
+        localStorage.setItem("user", JSON.stringify(nextUser));
         setUser(nextUser);
       }
       return;
     }
 
-    localStorage.setItem('user', JSON.stringify(updatedUser));
+    localStorage.setItem("user", JSON.stringify(updatedUser));
     setUser(updatedUser);
   };
 
@@ -124,16 +176,20 @@ function App() {
 
   if (loading) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        backgroundColor: 'var(--background)'
-      }}>
-        <div style={{ textAlign: 'center' }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          backgroundColor: "var(--background)",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
           <h2>Loading...</h2>
-          <p style={{ color: 'var(--text-secondary)' }}>Initializing Kaizen Competition System</p>
+          <p style={{ color: "var(--text-secondary)" }}>
+            Initializing Kaizen Competition System
+          </p>
         </div>
       </div>
     );
@@ -144,11 +200,11 @@ function App() {
       return <LoginPage onLogin={handleLogin} error={error} />;
     }
 
-    if (user.role === 'admin') {
+    if (user.role === "admin") {
       return (
-        <AdminDashboard 
-          user={user} 
-          appState={appState} 
+        <AdminDashboard
+          user={user}
+          appState={appState}
           updateState={updateState}
           onLogout={handleLogout}
           syncError={syncError}
@@ -156,11 +212,11 @@ function App() {
       );
     }
 
-    if (user.role === 'jury') {
+    if (user.role === "jury") {
       return (
-        <JuryDashboard 
-          user={user} 
-          appState={appState} 
+        <JuryDashboard
+          user={user}
+          appState={appState}
           updateState={updateState}
           onLogout={handleLogout}
           syncError={syncError}

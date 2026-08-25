@@ -70,6 +70,7 @@ export const contestsAPI = {
   delete: (id) => api.delete(`/contests/${id}`),
   setScoreUpdates: (id, allowScoreUpdates) =>
     api.post(`/contests/${id}/score-updates`, { allowScoreUpdates }),
+  complete: (id) => api.post(`/contests/${id}/complete`),
   publish: (id) => api.post(`/contests/${id}/publish`),
   unpublish: (id) => api.post(`/contests/${id}/unpublish`)
 };

@@ -1,7 +1,7 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../db.js';
-import { adminMiddleware, authMiddleware, createToken, isTokenSessionCurrent, verifyToken } from '../middleware/auth.js';
+import { adminMiddleware, authMiddleware, createToken, isJuryAccessLocked, isTokenSessionCurrent, verifyToken } from '../middleware/auth.js';
 import { logActivity } from '../utils/activity.js';
 
 const router = express.Router();
@@ -56,6 +56,17 @@ router.post('/login', async (req, res) => {
         details: { username, role, reason: 'invalid credentials' }
       });
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    if (user.role === 'jury' && await isJuryAccessLocked()) {
+      await logActivity({
+        actor: user.username,
+        actorRole: 'jury',
+        action: 'login_failed',
+        entityType: 'auth',
+        details: { username: user.username, role: 'jury', reason: 'active contest completed' }
+      });
+      return res.status(403).json({ error: 'The contest has been completed. Jury login is no longer available.' });
     }
 
     const now = Date.now();

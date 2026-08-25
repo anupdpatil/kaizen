@@ -182,19 +182,6 @@ function TeamsPage({ appState, updateState }) {
     }
   };
 
-  const handleUpdate = async (id, updates) => {
-    try {
-      await teamsAPI.update(id, updates);
-      const updated = appState.teams.map((t) =>
-        t.id === id ? { ...t, ...updates } : t,
-      );
-      updateState({ teams: updated });
-      showToast("Team updated successfully", "success");
-    } catch (err) {
-      setError(err.response?.data?.error || "Failed to update team");
-    }
-  };
-
   return (
     <div>
       <div
@@ -412,7 +399,6 @@ function TeamsPage({ appState, updateState }) {
           {showImport && (
             <TeamImportModal
               contests={appState.contests || []}
-              existingTeams={appState.teams || []}
               categories={TEAM_CATEGORY_OPTIONS}
               onImported={(importedTeams) => {
                 updateState({

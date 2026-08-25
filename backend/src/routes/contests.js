@@ -154,6 +154,57 @@ router.post('/:id/score-updates', adminMiddleware, async (req, res) => {
   }
 });
 
+// Mark a contest as complete and immediately invalidate sessions for its juries.
+router.post('/:id/complete', adminMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const contests = await db.getTable('contests');
+    const contest = contests.find((item) => item.id === id && !item.deletedAt);
+
+    if (!contest) {
+      return res.status(404).json({ error: 'Contest not found' });
+    }
+
+    if (contest.status === 'completed') {
+      return res.status(400).json({ error: 'Contest is already completed' });
+    }
+
+    const assignments = await db.getTable('hall_assignments');
+    const assignedJuryIds = new Set(
+      assignments
+        .filter((assignment) => assignment.contestId === id)
+        .flatMap((assignment) => assignment.juryIds || [])
+    );
+    const juries = await db.getTable('juries');
+    const completedAt = new Date().toISOString();
+    const updated = await db.update('contests', id, {
+      status: 'completed',
+      completedAt,
+      allowScoreUpdates: false
+    });
+
+    await db.setTable('juries', juries.map((jury) => (
+      assignedJuryIds.has(jury.id)
+        ? { ...jury, sessionId: null, sessionExpiresAt: null }
+        : jury
+    )));
+
+    await logActivity({
+      actor: req.user?.username,
+      actorRole: req.user?.role,
+      action: 'complete',
+      entityType: 'contest',
+      entityId: id,
+      details: { name: updated.name, completedAt, endedJurySessions: assignedJuryIds.size }
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Complete contest error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // DELETE (soft delete) contest
 router.delete('/:id', adminMiddleware, async (req, res) => {
   try {

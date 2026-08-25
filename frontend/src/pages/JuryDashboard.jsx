@@ -474,7 +474,8 @@ function JuryDashboard({
         <small>{team.organisationName || "N/A"}</small>
 
         <small>
-          {team.category || "Other"} • {getHallLabel(appState, team.contestId, team.hallId)}, Day{" "}
+          {team.category || "Other"} •{" "}
+          {getHallLabel(appState, team.contestId, team.hallId)}, Day{" "}
           {team.assignedDay}
         </small>
 
@@ -814,7 +815,8 @@ function JuryDashboard({
           <div className="card" id="jury-scoring-form">
             {selectedTeam ? (
               <>
-                <div className="card"
+                <div
+                  className="card"
                   style={{
                     display: "flex",
                     alignItems: "flex-start",

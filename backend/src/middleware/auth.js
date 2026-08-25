@@ -53,6 +53,18 @@ export const verifyToken = (token) => {
   }
 };
 
+const isActiveContestCompleted = async () => {
+  const state = await db.getTable('state');
+  if (!state?.activeContestId) return false;
+
+  const contests = await db.getTable('contests');
+  return contests.some(
+    (contest) => contest.id === state.activeContestId && contest.status === 'completed' && !contest.deletedAt
+  );
+};
+
+export const isJuryAccessLocked = isActiveContestCompleted;
+
 export const authMiddleware = async (req, res, next) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
 
@@ -78,6 +90,10 @@ export const authMiddleware = async (req, res, next) => {
 
   if (decoded.role === 'jury') {
     try {
+      if (await isActiveContestCompleted()) {
+        return res.status(401).json({ error: 'The active contest has been completed. Jury access is no longer available.' });
+      }
+
       const juries = await db.getTable('juries');
       const jury = juries.find(j => j.id === decoded.id && !j.isDeleted);
 

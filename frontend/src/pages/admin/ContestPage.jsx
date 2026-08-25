@@ -291,6 +291,27 @@ function ContestPage({ appState, updateState }) {
     }
   };
 
+  const handleCompleteContest = async (contest) => {
+    if (!window.confirm(
+      `Mark "${contest.name}" as complete? This disables score updates and immediately signs out all juries assigned to this contest.`
+    )) {
+      return;
+    }
+
+    try {
+      setError("");
+      const response = await contestsAPI.complete(contest.id);
+      updateState({
+        contests: (appState.contests || []).map((item) =>
+          item.id === contest.id ? response.data : item,
+        ),
+      });
+      showToast("Contest completed and jury access disabled", "success");
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to complete contest");
+    }
+  };
+
   return (
     <div>
       <div
@@ -806,6 +827,21 @@ function ContestPage({ appState, updateState }) {
                               {contest.allowScoreUpdates
                                 ? "Disable Score Updates"
                                 : "Allow Score Updates"}
+                            </button>
+
+                            <button
+                              type="button"
+                              className={`btn btn-sm ${
+                                contest.status === "completed"
+                                  ? "btn-secondary"
+                                  : "btn-primary"
+                              }`}
+                              onClick={() => handleCompleteContest(contest)}
+                              disabled={contest.status === "completed"}
+                            >
+                              {contest.status === "completed"
+                                ? "Completed"
+                                : "Mark Complete"}
                             </button>
 
                             {!contest.published && (

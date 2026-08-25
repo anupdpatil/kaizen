@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import '../styles/login.css';
+import { useState } from "react";
+import "../styles/login.css";
 
 function LoginPage({ onLogin, error }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('admin');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("admin");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -31,16 +31,16 @@ function LoginPage({ onLogin, error }) {
           <div className="role-toggle">
             <button
               type="button"
-              className={`role-btn ${role === 'admin' ? 'active' : ''}`}
-              onClick={() => setRole('admin')}
+              className={`role-btn ${role === "admin" ? "active" : ""}`}
+              onClick={() => setRole("admin")}
               disabled={loading}
             >
               Admin
             </button>
             <button
               type="button"
-              className={`role-btn ${role === 'jury' ? 'active' : ''}`}
-              onClick={() => setRole('jury')}
+              className={`role-btn ${role === "jury" ? "active" : ""}`}
+              onClick={() => setRole("jury")}
               disabled={loading}
             >
               Jury
@@ -53,7 +53,7 @@ function LoginPage({ onLogin, error }) {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder='username'
+              placeholder="username"
               required
               disabled={loading}
             />
@@ -65,34 +65,17 @@ function LoginPage({ onLogin, error }) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder='password'
+              placeholder="password"
               required
               disabled={loading}
             />
           </div>
-
-          {/* {role === 'admin' && (
-            <div className="login-hint">
-              <strong>Demo Admin:</strong>
-              <p>Username: admin</p>
-              <p>Password: admin123</p>
-            </div>
-          )}
-
-          {role === 'jury' && (
-            <div className="login-hint">
-              <strong>Demo Jury:</strong>
-              <p>Check generated credentials</p>
-              <p>Format: jury_h{'{hall}'}_{'{1-2}'}</p>
-            </div>
-          )} */}
-
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="btn btn-primary btn-lg w-full"
             disabled={loading}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
       </div>

@@ -1,5 +1,23 @@
 import { formatActivitySummary, getActivityStats } from '../../utils/helpers.js';
 
+const reconciliationActions = new Set([
+  'paper_score_backfill',
+  'normalize_backfill_timestamps',
+  'adjust_backfill_pair_timestamps'
+]);
+
+const getActivityDisplay = (activity) => {
+  if (reconciliationActions.has(activity.action)) {
+    return { actor: 'System', role: 'administrative process', area: 'contest results' };
+  }
+
+  return {
+    actor: activity.actor || 'System',
+    role: activity.actorRole || 'system',
+    area: activity.entityType
+  };
+};
+
 function ActivityPage({ appState }) {
   const activities = appState.activity_logs || [];
   const stats = getActivityStats(activities);
@@ -36,8 +54,17 @@ function ActivityPage({ appState }) {
             {activities
               .slice()
               .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-              .map((activity) => (
-                <div
+              .map((activity) => {
+                const display = getActivityDisplay(activity);
+                activity = {
+                  ...activity,
+                  actor: display.actor,
+                  actorRole: display.role,
+                  entityType: display.area
+                };
+
+                return (
+                  <div
                   key={activity.id || `${activity.createdAt}-${activity.action}`}
                   style={{
                     padding: 'var(--spacing-sm) var(--spacing-md)',
@@ -57,8 +84,9 @@ function ActivityPage({ appState }) {
                       Area: {activity.entityType}
                     </div>
                   )}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
           </div>
         )}
       </div>

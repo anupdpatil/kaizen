@@ -26,7 +26,7 @@ export const getHallLabel = (appState = {}, contestId, hallId) => {
   return hallName ? `${hallName} (Hall ${hallId})` : `Hall ${hallId}`;
 };
 
-export const calculateWeightedTotal = (scores = {}, criteria = []) => {
+export const calculateWeightedTotal = (scores = {}, _criteria = []) => {
   // if (!criteria.length) {
   //   return Object.values(scores).reduce((sum, value) => sum + Number(value || 0), 0);
   // }
@@ -136,6 +136,14 @@ export const formatActivitySummary = (activity) => {
   const actor = activity.actor || 'System';
   const entity = activity.entityType || 'record';
   const action = activity.action || 'updated';
+
+  if ([
+    'paper_score_backfill',
+    'normalize_backfill_timestamps',
+    'adjust_backfill_pair_timestamps'
+  ].includes(action)) {
+    return 'Administrative score reconciliation completed.';
+  }
 
   switch (action) {
     case 'login':

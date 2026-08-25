@@ -13,15 +13,6 @@ const EXPECTED_HEADERS = [
   "Hall No",
 ];
 
-const HEADER_MAP = {
-  Contest: "contestCode",
-  "Team Name": "teamName",
-  "Organization Name": "organisationName",
-  Category: "category",
-  Day: "assignedDay",
-  "Hall No": "hallId",
-};
-
 function normalizeHeader(value) {
   return String(value || "")
     .trim()
@@ -124,7 +115,6 @@ function parseWorkbook(file) {
 
 function TeamImportModal({
   contests = [],
-  existingTeams = [],
   categories = [],
   onImported,
   onClose,
