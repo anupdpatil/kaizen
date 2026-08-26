@@ -3,6 +3,9 @@ import { authAPI, stateAPI } from "./utils/api.js";
 import LoginPage from "./pages/LoginPage.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import JuryDashboard from "./pages/JuryDashboard.jsx";
+import PublicPortal from "./pages/PublicPortal.jsx";
+import ContestLanding from "./pages/ContestLanding.jsx";
+import ContactPage from "./pages/ContactPage.jsx";
 
 const createInitialAppState = () => ({
   contests: [],
@@ -37,11 +40,23 @@ const getTokenExpiration = (token) => {
 };
 
 function App() {
+  const [pathname, setPathname] = useState(() => window.location.pathname);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [appState, setAppState] = useState(createInitialAppState);
   const [syncError] = useState(null);
+
+  useEffect(() => {
+    const updatePathname = () => setPathname(window.location.pathname);
+    window.addEventListener("popstate", updatePathname);
+    return () => window.removeEventListener("popstate", updatePathname);
+  }, []);
+
+  const isContestWorkspace =
+    pathname === "/contest/login" ||
+    pathname === "/contest/admin" ||
+    pathname === "/contest/jury";
 
   const clearLocalSession = useCallback((message = null) => {
     localStorage.removeItem("token");
@@ -51,8 +66,12 @@ function App() {
     if (message) setError(message);
   }, []);
 
-  // Initialize app on mount
+  // The public portal intentionally requires no application-data request.
   useEffect(() => {
+    if (!isContestWorkspace) {
+      setLoading(false);
+      return undefined;
+    }
     const initApp = async () => {
       try {
         setLoading(true);
@@ -86,7 +105,7 @@ function App() {
     };
 
     initApp();
-  }, []);
+  }, [isContestWorkspace]);
 
   useEffect(() => {
     if (!user) return undefined;
@@ -131,6 +150,13 @@ function App() {
       localStorage.setItem("user", JSON.stringify(userData));
       setUser(userData);
 
+      window.history.replaceState(
+        {},
+        "",
+        userData.role === "admin" ? "/contest/admin" : "/contest/jury",
+      );
+      setPathname(window.location.pathname);
+
       // Fetch snapshot
       const snapshotResponse = await stateAPI.getSnapshot();
       setAppState(snapshotResponse.data);
@@ -150,6 +176,8 @@ function App() {
     }
 
     clearLocalSession();
+    window.history.replaceState({}, "", "/contest/login");
+    setPathname(window.location.pathname);
   };
 
   const handlePasswordChanged = (updatedUser) => {
@@ -173,6 +201,15 @@ function App() {
     // just submitted by another jury with an older browser state.
     setAppState((currentState) => ({ ...currentState, ...newState }));
   }, []);
+
+  if (!isContestWorkspace) {
+    if (pathname === "/contact" || pathname === "/contact/") {
+      return <ContactPage />;
+    }
+    return pathname === "/contest" || pathname === "/contest/"
+      ? <ContestLanding />
+      : <PublicPortal />;
+  }
 
   if (loading) {
     return (
