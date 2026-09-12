@@ -105,7 +105,6 @@ function DetailedScoresPage({ appState }) {
             <p
               style={{
                 color: "var(--color-text-secondary)",
-                // marginTop: "0.5rem",
               }}
             >
               Category: <strong>{selectedTeam.category || "Other"}</strong> |
@@ -270,14 +269,6 @@ function DetailedScoresPage({ appState }) {
                               >
                                 {c.criterion}
                               </div>
-                              {/* <div
-                          style={{
-                            fontSize: "0.85rem",
-                            color: "var(--color-text-secondary)",
-                          }}
-                        >
-                          Weight: {c.weightage} marks
-                        </div> */}
                             </div>
                             <div
                               style={{

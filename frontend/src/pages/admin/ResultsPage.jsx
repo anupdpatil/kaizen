@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
 import { getActiveContestId, getHallLabel } from "../../utils/helpers.js";
 
-function ResultsPage({ appState }) {
-  const [hallFilter, setHallFilter] = useState("");
+function ResultsPage({ appState, initialHallFilter = "" }) {
+  const [hallFilter, setHallFilter] = useState(initialHallFilter);
   const [dayFilter, setDayFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -16,6 +16,11 @@ function ResultsPage({ appState }) {
   });
 
   const activeContestId = getActiveContestId(appState);
+
+  useEffect(() => {
+    setHallFilter(initialHallFilter);
+    setCurrentPage(1);
+  }, [initialHallFilter]);
 
   // ------------------------------------------------------------
   // Filter, calculate and sort results
