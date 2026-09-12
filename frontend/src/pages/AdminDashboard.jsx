@@ -14,6 +14,19 @@ import DetailedScoresPage from "./admin/DetailedScoresPage.jsx";
 
 function AdminDashboard({ user, appState, updateState, onLogout, syncError }) {
   const [currentView, setCurrentView] = useState("dashboard");
+  const [selectedResultsHall, setSelectedResultsHall] = useState("");
+
+  const openResults = (hallId = "") => {
+    setSelectedResultsHall(String(hallId));
+    setCurrentView("results");
+  };
+
+  const handleViewChange = view => {
+    if (view === "results") {
+      setSelectedResultsHall("");
+    }
+    setCurrentView(view);
+  };
 
   const renderView = () => {
     switch (currentView) {
@@ -28,11 +41,11 @@ function AdminDashboard({ user, appState, updateState, onLogout, syncError }) {
           <AssignmentsPage appState={appState} updateState={updateState} />
         );
       case "dashboard":
-        return <DashboardPage appState={appState} />;
+        return <DashboardPage appState={appState} onViewChange={handleViewChange} onHallSelect={openResults} />;
       case "activity":
         return <ActivityPage appState={appState} />;
       case "results":
-        return <ResultsPage appState={appState} />;
+        return <ResultsPage appState={appState} initialHallFilter={selectedResultsHall} />;
       case "rankings":
         return <RankingsPage appState={appState} />;
       case "detailed-scores":
@@ -40,7 +53,7 @@ function AdminDashboard({ user, appState, updateState, onLogout, syncError }) {
       case "exports":
         return <ExportsPage appState={appState} />;
       default:
-        return <DashboardPage appState={appState} />;
+        return <DashboardPage appState={appState} onViewChange={handleViewChange} onHallSelect={openResults} />;
     }
   };
 
@@ -48,7 +61,7 @@ function AdminDashboard({ user, appState, updateState, onLogout, syncError }) {
     <AdminLayout
       user={user}
       currentView={currentView}
-      onViewChange={setCurrentView}
+      onViewChange={handleViewChange}
       onLogout={onLogout}
       syncError={syncError}
     >
