@@ -1,7 +1,8 @@
 import { useState } from "react";
 import "../styles/login.css";
+import { APP_CONFIG } from "../config/appConfig.js";
 
-function LoginPage({ onLogin, error }) {
+function LoginPage({ onLogin, error, appConfig = APP_CONFIG }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("admin");
@@ -21,8 +22,8 @@ function LoginPage({ onLogin, error }) {
     <div className="login-container">
       <div className="login-content">
         <div className="login-header">
-          <h1>CCQC 2026</h1>
-          <p>Chatrapati Sambhajinagar Chapter</p>
+          <h1>{appConfig.appName}</h1>
+          <p>{appConfig.tagline}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">

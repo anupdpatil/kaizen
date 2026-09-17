@@ -217,6 +217,7 @@ label.required::after {
 }
 
 input[type="text"],
+input:not([type]),
 input[type="email"],
 input[type="password"],
 input[type="date"],
@@ -235,6 +236,7 @@ textarea {
 }
 
 input[type="text"]:focus,
+input:not([type]):focus,
 input[type="email"]:focus,
 input[type="password"]:focus,
 input[type="date"]:focus,
@@ -247,6 +249,7 @@ textarea:focus {
 }
 
 input[type="text"]:disabled,
+input:not([type]):disabled,
 input[type="email"]:disabled,
 input[type="password"]:disabled,
 input[type="date"]:disabled,
@@ -259,6 +262,7 @@ textarea:disabled {
 }
 
 input[type="text"].error,
+input:not([type]).error,
 input[type="email"].error,
 input[type="password"].error,
 input[type="date"].error,

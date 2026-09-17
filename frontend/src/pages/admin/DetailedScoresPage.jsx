@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { getActiveContestId, getHallLabel } from "../../utils/helpers.js";
-import { CATEGORY_WISE_EVALUATION_CRITERIA } from "../../constants/categoryWiseEvaluationCriteria.js";
+import { getCriteriaForTeam } from "../../config/competitionConfig.js";
 
 function DetailedScoresPage({ appState }) {
   const [selectedTeamId, setSelectedTeamId] = useState("");
@@ -42,14 +42,9 @@ function DetailedScoresPage({ appState }) {
     detailedScores.find((score) => score.juryId === selectedJuryId) ||
     detailedScores[0];
 
-  const categories = selectedTeam
-    ? [selectedTeam.category || "Allied Case Study"]
+  const criteria = selectedTeam
+    ? getCriteriaForTeam(appState, selectedTeam.category)
     : [];
-  const criteria =
-    categories.length > 0
-      ? CATEGORY_WISE_EVALUATION_CRITERIA[categories[0]] ||
-        CATEGORY_WISE_EVALUATION_CRITERIA["Allied Case Study"]
-      : [];
 
   return (
     <div>

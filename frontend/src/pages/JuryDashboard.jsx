@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { evaluationsAPI } from "../utils/api.js";
 import PasswordChangeModal from "../components/PasswordChangeModal.jsx";
-import { TEAM_CATEGORIES } from "../constants/teamCategories.js";
-import { CATEGORY_WISE_EVALUATION_CRITERIA } from "../constants/categoryWiseEvaluationCriteria.js";
+import { getCompetitionConfig, getCriteriaForTeam } from "../config/competitionConfig.js";
+import { APP_CONFIG } from "../config/appConfig.js";
 import {
   calculateWeightedTotal,
   getActiveContestId,
@@ -18,6 +18,7 @@ function JuryDashboard({
   syncError,
   forcePasswordChange = false,
   onPasswordChanged,
+  appConfig = APP_CONFIG,
 }) {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [scores, setScores] = useState({});
@@ -55,7 +56,7 @@ function JuryDashboard({
     return (
       <div className="jury-layout">
         <header className="jury-header">
-          <h1>Jury Dashboard</h1>
+          <h1>{appConfig.terminology?.jury || "Jury"} Dashboard</h1>
 
           <div className="header-right">
             <span className="user-badge">
@@ -165,12 +166,11 @@ function JuryDashboard({
    * SELECTED TEAM
    * ============================================================
    */
+  const competitionConfig = getCompetitionConfig(appState);
   const selectedTeamCategoryGroup = selectedTeam
-    ? TEAM_CATEGORIES[selectedTeam.category] || "Allied Case Study"
+    ? competitionConfig.categories[selectedTeam.category] || selectedTeam.category
     : "Allied Case Study";
-
-  const criteria =
-    CATEGORY_WISE_EVALUATION_CRITERIA[selectedTeamCategoryGroup] || [];
+  const criteria = selectedTeam ? getCriteriaForTeam(appState, selectedTeam.category) : [];
 
   const selectedTeamSubmission = selectedTeam
     ? appState.evaluations?.[selectedTeam.id]?.[user.id] || null
@@ -536,7 +536,7 @@ function JuryDashboard({
           HEADER
           ======================================================== */}
       <header className="jury-header">
-        <h1>Jury Dashboard</h1>
+        <h1>{appConfig.terminology?.jury || "Jury"} Dashboard</h1>
 
         <div className="header-right">
           <span className="user-badge">

@@ -101,6 +101,15 @@ app.use('/api/juries', authMiddleware, productionWriteGuard, juriesRouter);
 app.use('/api/teams', authMiddleware, productionWriteGuard, teamsRouter);
 app.use('/api/hall-assignments', authMiddleware, productionWriteGuard, assignmentsRouter);
 app.use('/api/evaluations', authMiddleware, productionWriteGuard, evaluationsRouter);
+app.get('/api/config', async (req, res) => {
+  try {
+    const state = await db.getTable('state');
+    res.json(state?.appConfig || {});
+  } catch (error) {
+    console.error('Get application config error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 app.use('/api/state', authMiddleware, productionWriteGuard, stateRouter);
 
 // Block /data access

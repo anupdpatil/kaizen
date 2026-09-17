@@ -2,6 +2,19 @@
 
 A production-ready full-stack web application for managing Kaizen competitions with comprehensive role-based access control, scoring, rankings, and data export capabilities.
 
+## Client configuration
+
+Administrators can update client-specific branding from the **Configuration**
+page in the admin dashboard. Changes to the application name, tagline, browser
+title, and loading message are stored in the application's state and apply to
+all users. The defaults are defined in
+[`frontend/src/config/appConfig.js`](frontend/src/config/appConfig.js) for new
+deployments.
+
+The same page also manages terminology, team categories, evaluation groups,
+criteria, and criterion weightages. These competition rules are used by jury
+scoring, rankings, detailed score views, and exports.
+
 ## Current Product Stage
 
 This project is currently at V1: the foundation release of the Kaizen competition platform.
@@ -215,4 +228,3 @@ Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
 - Previous commit: 8e52d43
 - Changed files reviewed: 30
 - Notes: README and changelog were refreshed based on the latest version diff.
-

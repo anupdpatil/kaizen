@@ -1,5 +1,5 @@
 import { calculateTeamScore, getActiveContestId, getHallLabel } from '../../utils/helpers.js';
-import { CATEGORY_WISE_EVALUATION_CRITERIA } from '../../constants/categoryWiseEvaluationCriteria.js';
+import { getCriteriaForTeam } from '../../config/competitionConfig.js';
 
 function ExportsPage({ appState }) {
   const downloadCSV = (filename, data) => {
@@ -29,7 +29,7 @@ function ExportsPage({ appState }) {
       ?.filter(t => !t.isDeleted)
       .filter(t => !activeContestId || t.contestId === activeContestId)
       .map(t => {
-        const criteria = CATEGORY_WISE_EVALUATION_CRITERIA[t.category] || CATEGORY_WISE_EVALUATION_CRITERIA['Allied Case Study'];
+        const criteria = getCriteriaForTeam(appState, t.category);
         const score = calculateTeamScore(appState.evaluations, t.id, criteria);
         return {
           TeamCode: t.teamCode,
@@ -55,7 +55,7 @@ function ExportsPage({ appState }) {
         const hallTeams = appState.teams?.filter(t => t.contestId === contest.id && t.hallId === hall && !t.isDeleted) || [];
         const scores = hallTeams
           .map(t => {
-            const criteria = CATEGORY_WISE_EVALUATION_CRITERIA[t.category] || CATEGORY_WISE_EVALUATION_CRITERIA['Allied Case Study'];
+            const criteria = getCriteriaForTeam(appState, t.category);
             return calculateTeamScore(appState.evaluations, t.id, criteria);
           })
           .filter(s => s !== null);
@@ -77,7 +77,7 @@ function ExportsPage({ appState }) {
       ?.filter(t => !t.isDeleted)
       .filter(t => !activeContestId || t.contestId === activeContestId)
       .map(t => {
-        const criteria = CATEGORY_WISE_EVALUATION_CRITERIA[t.category] || CATEGORY_WISE_EVALUATION_CRITERIA['Allied Case Study'];
+        const criteria = getCriteriaForTeam(appState, t.category);
         const teamEvals = appState.evaluations[t.id] || {};
         const entries = Object.entries(teamEvals);
         let jury1Name = '-', score1 = '-', jury2Name = '-', score2 = '-';
@@ -123,8 +123,7 @@ function ExportsPage({ appState }) {
       ?.filter(t => !t.isDeleted)
       .filter(t => !activeContestId || t.contestId === activeContestId)
       .forEach(t => {
-        const teamCategory = t.category || 'Allied Case Study';
-        const criteria = CATEGORY_WISE_EVALUATION_CRITERIA[teamCategory] || CATEGORY_WISE_EVALUATION_CRITERIA['Allied Case Study'];
+        const criteria = getCriteriaForTeam(appState, t.category);
         const sortedCriteria = criteria.map(c => c.criterion);
         
         const teamEvals = appState.evaluations[t.id] || {};

@@ -109,6 +109,8 @@ export const evaluationsAPI = {
 // State
 export const stateAPI = {
   getSnapshot: () => api.get('/state/snapshot'),
+  getConfig: () => api.get('/config'),
+  updateConfig: (config) => api.put('/state/config', config),
   setActiveContest: (activeContestId) =>
     api.post('/state/active-contest', { activeContestId })
 };

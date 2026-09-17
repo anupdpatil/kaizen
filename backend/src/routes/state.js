@@ -1,6 +1,7 @@
 import express from 'express';
 import db from '../db.js';
 import { adminMiddleware } from '../middleware/auth.js';
+import { logActivity } from '../utils/activity.js';
 
 const router = express.Router();
 
@@ -52,6 +53,51 @@ router.post('/active-contest', adminMiddleware, async (req, res) => {
     res.json({ activeContestId });
   } catch (error) {
     console.error('Set active contest error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+router.put('/config', adminMiddleware, async (req, res) => {
+  try {
+    const allowedFields = [
+      'appName',
+      'tagline',
+      'browserTitle',
+      'loadingMessage',
+      'organizationName',
+      'terminology',
+      'competition'
+    ];
+    const nextConfig = {};
+
+    for (const field of allowedFields) {
+      if (field === 'terminology' || field === 'competition') {
+        if (!req.body[field] || typeof req.body[field] !== 'object' || Array.isArray(req.body[field])) {
+          return res.status(400).json({ error: `${field} must be a valid object` });
+        }
+        nextConfig[field] = req.body[field];
+        continue;
+      }
+      if (typeof req.body[field] !== 'string' || !req.body[field].trim()) {
+        return res.status(400).json({ error: `${field} is required` });
+      }
+      if (req.body[field].trim().length > 160) {
+        return res.status(400).json({ error: `${field} must be 160 characters or fewer` });
+      }
+      nextConfig[field] = req.body[field].trim();
+    }
+
+    const state = await db.getTable('state');
+    await db.setTable('state', { ...state, appConfig: nextConfig });
+    await logActivity({
+      request: req,
+      action: 'updated application configuration',
+      entityType: 'application',
+      details: nextConfig
+    });
+    res.json(nextConfig);
+  } catch (error) {
+    console.error('Update application config error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

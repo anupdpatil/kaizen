@@ -11,15 +11,17 @@ if (!['production', 'development'].includes(target)) {
   throw new Error('Usage: node scripts/reset-sessions.js [production|development]');
 }
 
-// Production remains the default. Development explicitly loads the isolated
-// override, so its reset command can never clear production sessions.
+// Load the same target-specific overrides used by the application launchers.
+// Production remains the default, while development explicitly targets the
+// isolated development database.
 dotenv.config({ path: path.join(__dirname, '../.env') });
-if (target === 'development') {
-  dotenv.config({
-    path: path.join(__dirname, '../.env.development.local'),
-    override: true
-  });
-}
+dotenv.config({
+  path: path.join(
+    __dirname,
+    target === 'development' ? '../.env.development.local' : '../.env.production-data.local'
+  ),
+  override: true
+});
 
 const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
 const databaseName = process.env.MONGODB_DB_NAME || 'kaizen';

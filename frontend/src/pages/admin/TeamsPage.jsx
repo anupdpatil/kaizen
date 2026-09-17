@@ -1,18 +1,18 @@
 import { useMemo, useState } from "react";
 import { teamsAPI } from "../../utils/api.js";
 import { showToast } from "../../utils/notify.js";
-import { TEAM_CATEGORIES } from "../../constants/teamCategories.js";
+import { getCompetitionConfig } from "../../config/competitionConfig.js";
 import TeamImportModal from "../../components/TeamImportModal.jsx";
 import { getHallLabel } from "../../utils/helpers.js";
 
-const TEAM_CATEGORY_OPTIONS = Object.keys(TEAM_CATEGORIES);
-
 function TeamsPage({ appState, updateState }) {
+  const teamCategoryOptions = Object.keys(getCompetitionConfig(appState).categories);
+  const teamCategories = getCompetitionConfig(appState).categories;
   const [newTeam, setNewTeam] = useState({
     contestId: "",
     teamName: "",
     organisationName: "",
-    category: TEAM_CATEGORY_OPTIONS[0],
+    category: teamCategoryOptions[0] || "",
     assignedDay: 1,
     hallId: 1,
   });
@@ -53,11 +53,11 @@ function TeamsPage({ appState, updateState }) {
         const direction = sortConfig.direction === "asc" ? 1 : -1;
         const aValue =
           sortConfig.key === "evaluationType"
-            ? TEAM_CATEGORIES[a.category] || "Other"
+            ? teamCategories[a.category] || "Other"
             : (a[sortConfig.key] ?? "");
         const bValue =
           sortConfig.key === "evaluationType"
-            ? TEAM_CATEGORIES[b.category] || "Other"
+            ? teamCategories[b.category] || "Other"
             : (b[sortConfig.key] ?? "");
         if (typeof aValue === "number" && typeof bValue === "number") {
           return (aValue - bValue) * direction;
@@ -133,7 +133,7 @@ function TeamsPage({ appState, updateState }) {
         teamCode: newTeam.teamName.trim().replace(/\s+/g, "-").toUpperCase(),
         teamName: newTeam.teamName.trim(),
         organisationName: newTeam.organisationName.trim(),
-        category: newTeam.category || TEAM_CATEGORY_OPTIONS[0],
+        category: newTeam.category || teamCategoryOptions[0],
         assignedDay: newTeam.assignedDay,
         hallId: newTeam.hallId,
       };
@@ -146,7 +146,7 @@ function TeamsPage({ appState, updateState }) {
         contestId: "",
         teamName: "",
         organisationName: "",
-        category: TEAM_CATEGORY_OPTIONS[0],
+        category: teamCategoryOptions[0] || "",
         assignedDay: 1,
         hallId: 1,
       });
@@ -325,7 +325,7 @@ function TeamsPage({ appState, updateState }) {
                   required
                   disabled={loading}
                 >
-                  {TEAM_CATEGORY_OPTIONS.map((category) => (
+                  {teamCategoryOptions.map((category) => (
                     <option key={category} value={category}>
                       {category}
                     </option>
@@ -399,7 +399,7 @@ function TeamsPage({ appState, updateState }) {
           {showImport && (
             <TeamImportModal
               contests={appState.contests || []}
-              categories={TEAM_CATEGORY_OPTIONS}
+              categories={teamCategoryOptions}
               onImported={(importedTeams) => {
                 updateState({
                   teams: [...(appState.teams || []), ...importedTeams],
@@ -642,7 +642,7 @@ function TeamsPage({ appState, updateState }) {
                           {team.organisationName || team.teamName || "N/A"}
                         </td>
                         <td>{team.category || "Other"}</td>
-                        <td>{TEAM_CATEGORIES[team.category] || "Other"}</td>
+                        <td>{teamCategories[team.category] || "Other"}</td>
                         <td>{team.assignedDay}</td>
                         <td>{getHallLabel(appState, team.contestId, team.hallId)}</td>
                         <td>✓ Active</td>

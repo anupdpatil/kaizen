@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { calculateTeamScore, getActiveContestId, getHallLabel } from "../../utils/helpers.js";
-import { CATEGORY_WISE_EVALUATION_CRITERIA } from "../../constants/categoryWiseEvaluationCriteria.js";
+import { getCriteriaForTeam } from "../../config/competitionConfig.js";
 
 function RankingsPage({ appState }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,9 +22,7 @@ function RankingsPage({ appState }) {
       .filter((t) => !t.isDeleted)
       .filter((t) => !activeContestId || t.contestId === activeContestId)
       .map((t) => {
-        const criteria =
-          CATEGORY_WISE_EVALUATION_CRITERIA[t.category] ||
-          CATEGORY_WISE_EVALUATION_CRITERIA["Allied Case Study"];
+        const criteria = getCriteriaForTeam(appState, t.category);
 
         return {
           team: t,
