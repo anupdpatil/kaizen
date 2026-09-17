@@ -57,14 +57,15 @@ const stateWithContest = {
 };
 
 describe('LoginPage', () => {
-  it('submits credentials and switches roles', async () => {
+  it('submits credentials without requiring a role selection', async () => {
     const onLogin = vi.fn().mockResolvedValue(undefined);
     render(<LoginPage onLogin={onLogin} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Jury' }));
     fireEvent.change(screen.getByPlaceholderText('username'), { target: { value: 'j1' } });
     fireEvent.change(screen.getByPlaceholderText('password'), { target: { value: 'secret' } });
     fireEvent.submit(screen.getByRole('button', { name: 'Login' }).closest('form'));
-    await waitFor(() => expect(onLogin).toHaveBeenCalledWith('j1', 'secret', 'jury'));
+    await waitFor(() => expect(onLogin).toHaveBeenCalledWith('j1', 'secret'));
+    expect(screen.queryByRole('button', { name: 'Admin' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Jury' })).not.toBeInTheDocument();
   });
 
   it('displays authentication errors', () => {

@@ -5,14 +5,13 @@ import { APP_CONFIG } from "../config/appConfig.js";
 function LoginPage({ onLogin, error, appConfig = APP_CONFIG }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("admin");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await onLogin(username, password, role);
+      await onLogin(username, password);
     } finally {
       setLoading(false);
     }
@@ -28,25 +27,6 @@ function LoginPage({ onLogin, error, appConfig = APP_CONFIG }) {
 
         <form onSubmit={handleSubmit} className="login-form">
           {error && <div className="alert alert-error mb-3">{error}</div>}
-
-          <div className="role-toggle">
-            <button
-              type="button"
-              className={`role-btn ${role === "admin" ? "active" : ""}`}
-              onClick={() => setRole("admin")}
-              disabled={loading}
-            >
-              Admin
-            </button>
-            <button
-              type="button"
-              className={`role-btn ${role === "jury" ? "active" : ""}`}
-              onClick={() => setRole("jury")}
-              disabled={loading}
-            >
-              Jury
-            </button>
-          </div>
 
           <div className="form-group">
             <label className="required">Username</label>

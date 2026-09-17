@@ -21,21 +21,27 @@ router.get('/', async (req, res) => {
 router.post('/', adminMiddleware, async (req, res) => {
   try {
     const { name, username, password, role } = req.body;
+    const normalizedUsername = typeof username === 'string' ? username.trim().toLowerCase() : '';
 
-    if (!name || !username || !password) {
+    if (!name || !normalizedUsername || !password) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Check unique username
-    const juries = await db.getTable('juries');
-    if (juries.some(j => j.username === username)) {
-      return res.status(400).json({ error: 'Username already exists' });
+    const [juries, admins] = await Promise.all([
+      db.getTable('juries'),
+      db.getTable('admins')
+    ]);
+    if (juries.some((jury) => jury.username?.trim().toLowerCase() === normalizedUsername)) {
+      return res.status(409).json({ error: 'Unable to create jury with this username. Please choose a different username.' });
+    }
+    if (admins.some((admin) => admin.username?.trim().toLowerCase() === normalizedUsername)) {
+      return res.status(409).json({ error: 'Unable to create jury with this username. Please choose a different username.' });
     }
 
     const newJury = {
       id: uuidv4(),
       name,
-      username,
+      username: username.trim(),
       password, // In production, should be hashed
       isDeleted: false,
       role: role || 'jury',

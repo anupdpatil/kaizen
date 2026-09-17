@@ -140,10 +140,10 @@ function App() {
   }, [clearLocalSession, user]);
 
   // Handle login
-  const handleLogin = async (username, password, role) => {
+  const handleLogin = async (username, password) => {
     try {
       setError(null);
-      const response = await authAPI.login(username, password, role);
+      const response = await authAPI.login(username, password);
       const { token, user: userData } = response.data;
 
       localStorage.setItem("token", token);
