@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { authAPI, stateAPI } from "./utils/api.js";
+import { APP_CONFIG } from "./config/appConfig.js";
 import LoginPage from "./pages/LoginPage.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import JuryDashboard from "./pages/JuryDashboard.jsx";
+import ToastContainer from "./components/ToastContainer.jsx";
 
 const createInitialAppState = () => ({
   contests: [],
@@ -42,6 +44,11 @@ function App() {
   const [error, setError] = useState(null);
   const [appState, setAppState] = useState(createInitialAppState);
   const [syncError] = useState(null);
+  const [appConfig, setAppConfig] = useState(APP_CONFIG);
+
+  useEffect(() => {
+    document.title = appConfig.browserTitle;
+  }, [appConfig]);
 
   const clearLocalSession = useCallback((message = null) => {
     localStorage.removeItem("token");
@@ -56,6 +63,14 @@ function App() {
     const initApp = async () => {
       try {
         setLoading(true);
+        if (stateAPI.getConfig) {
+          try {
+            const configResponse = await stateAPI.getConfig();
+            setAppConfig((current) => ({ ...current, ...configResponse.data }));
+          } catch (configError) {
+            console.warn("Application configuration could not be loaded:", configError);
+          }
+        }
         const token = localStorage.getItem("token");
         const storedUser = localStorage.getItem("user");
 
@@ -69,6 +84,10 @@ function App() {
             // Fetch snapshot
             const snapshotResponse = await stateAPI.getSnapshot();
             setAppState(snapshotResponse.data);
+            setAppConfig((current) => ({
+              ...current,
+              ...(snapshotResponse.data.state?.appConfig || {})
+            }));
           } else {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
@@ -121,10 +140,10 @@ function App() {
   }, [clearLocalSession, user]);
 
   // Handle login
-  const handleLogin = async (username, password, role) => {
+  const handleLogin = async (username, password) => {
     try {
       setError(null);
-      const response = await authAPI.login(username, password, role);
+      const response = await authAPI.login(username, password);
       const { token, user: userData } = response.data;
 
       localStorage.setItem("token", token);
@@ -134,6 +153,10 @@ function App() {
       // Fetch snapshot
       const snapshotResponse = await stateAPI.getSnapshot();
       setAppState(snapshotResponse.data);
+      setAppConfig((current) => ({
+        ...current,
+        ...(snapshotResponse.data.state?.appConfig || {})
+      }));
     } catch (err) {
       setError(err.response?.data?.error || "Login failed");
     }
@@ -188,7 +211,7 @@ function App() {
         <div style={{ textAlign: "center" }}>
           <h2>Loading...</h2>
           <p style={{ color: "var(--text-secondary)" }}>
-            Initializing Kaizen Competition System
+            {appConfig.loadingMessage}
           </p>
         </div>
       </div>
@@ -197,7 +220,7 @@ function App() {
 
   const content = (() => {
     if (!user) {
-      return <LoginPage onLogin={handleLogin} error={error} />;
+      return <LoginPage appConfig={appConfig} onLogin={handleLogin} error={error} />;
     }
 
     if (user.role === "admin") {
@@ -208,6 +231,14 @@ function App() {
           updateState={updateState}
           onLogout={handleLogout}
           syncError={syncError}
+          appConfig={appConfig}
+          onConfigChange={(nextConfig) => {
+            setAppConfig(nextConfig);
+            setAppState((current) => ({
+              ...current,
+              state: { ...current.state, appConfig: nextConfig }
+            }));
+          }}
         />
       );
     }
@@ -222,6 +253,7 @@ function App() {
           syncError={syncError}
           forcePasswordChange={Boolean(user.mustChangePassword)}
           onPasswordChanged={handlePasswordChanged}
+          appConfig={appConfig}
         />
       );
     }
@@ -241,6 +273,7 @@ function App() {
         </div>
       </footer>
       <ToastContainer /> */}
+      <ToastContainer />
     </div>
   );
 }

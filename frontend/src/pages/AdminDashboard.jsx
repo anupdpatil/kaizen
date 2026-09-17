@@ -11,8 +11,10 @@ import ResultsPage from "./admin/ResultsPage.jsx";
 import RankingsPage from "./admin/RankingsPage.jsx";
 import ExportsPage from "./admin/ExportsPage.jsx";
 import DetailedScoresPage from "./admin/DetailedScoresPage.jsx";
+import ConfigurationPage from "./admin/ConfigurationPage.jsx";
+import { APP_CONFIG } from "../config/appConfig.js";
 
-function AdminDashboard({ user, appState, updateState, onLogout, syncError }) {
+function AdminDashboard({ user, appState, updateState, onLogout, syncError, appConfig = APP_CONFIG, onConfigChange = () => {} }) {
   const [currentView, setCurrentView] = useState("dashboard");
   const [selectedResultsHall, setSelectedResultsHall] = useState("");
 
@@ -32,6 +34,16 @@ function AdminDashboard({ user, appState, updateState, onLogout, syncError }) {
     switch (currentView) {
       case "setup":
         return <SetupPage appState={appState} updateState={updateState} />;
+      case "configuration":
+        return (
+          <ConfigurationPage
+            appConfig={appConfig}
+            onConfigChange={(nextConfig) => {
+              onConfigChange(nextConfig);
+              setCurrentView("dashboard");
+            }}
+          />
+        );
       case "juries":
         return <JuriesPage appState={appState} updateState={updateState} />;
       case "teams":
@@ -64,6 +76,7 @@ function AdminDashboard({ user, appState, updateState, onLogout, syncError }) {
       onViewChange={handleViewChange}
       onLogout={onLogout}
       syncError={syncError}
+      appConfig={appConfig}
     >
       {renderView()}
     </AdminLayout>

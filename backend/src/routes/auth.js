@@ -9,51 +9,52 @@ const router = express.Router();
 // Login endpoint
 router.post('/login', async (req, res) => {
   try {
-    const { username, password, role } = req.body;
+    const { username, password } = req.body;
+    const normalizedUsername = typeof username === 'string' ? username.trim().toLowerCase() : '';
 
-    if (!username || !password) {
+    if (!normalizedUsername || !password) {
       return res.status(400).json({ error: 'Username and password required' });
     }
 
     let user = null;
     let accountRecord = null;
     const state = await db.getTable('state');
+    const [admins, juries] = await Promise.all([
+      db.getTable('admins'),
+      db.getTable('juries')
+    ]);
+    const admin = admins.find((item) =>
+      item.username?.trim().toLowerCase() === normalizedUsername && !item.isDeleted
+    );
+    const jury = juries.find((item) =>
+      item.username?.trim().toLowerCase() === normalizedUsername && !item.isDeleted
+    );
 
-    if (role === 'admin') {
-      const admins = await db.getTable('admins');
-      const admin = admins.find((item) => item.username === username && !item.isDeleted);
-      if (admin && admin.password === password) {
-        accountRecord = admin;
-        user = {
-          id: admin.id,
-          username: admin.username,
-          role: 'admin',
-          access: admin.access || 'full'
-        };
-      }
-    } else if (role === 'jury') {
-      // Check jury credentials
-      const juries = await db.getTable('juries');
-      const jury = juries.find(j => j.username === username && !j.isDeleted);
-
-      if (jury && jury.password === password) {
-        accountRecord = jury;
-        user = {
-          id: jury.id,
-          username: jury.username,
-          role: 'jury',
-          mustChangePassword: Boolean(jury.mustChangePassword)
-        };
-      }
+    if (admin && admin.password === password) {
+      accountRecord = admin;
+      user = {
+        id: admin.id,
+        username: admin.username,
+        role: 'admin',
+        access: admin.access || 'full'
+      };
+    } else if (jury && jury.password === password) {
+      accountRecord = jury;
+      user = {
+        id: jury.id,
+        username: jury.username,
+        role: 'jury',
+        mustChangePassword: Boolean(jury.mustChangePassword)
+      };
     }
 
     if (!user) {
       await logActivity({
         actor: username,
-        actorRole: role || 'unknown',
+        actorRole: admin ? 'admin' : jury ? 'jury' : 'unknown',
         action: 'login_failed',
         entityType: 'auth',
-        details: { username, role, reason: 'invalid credentials' }
+        details: { username, reason: 'invalid credentials' }
       });
       return res.status(401).json({ error: 'Invalid credentials' });
     }

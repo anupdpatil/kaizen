@@ -7,24 +7,30 @@ import {
   setProductionWritesEnabled
 } from '../utils/api.js';
 import '../styles/layout.css';
+import { APP_CONFIG } from '../config/appConfig.js';
 
-function AdminLayout({ user, currentView, onViewChange, onLogout, syncError, children }) {
+function AdminLayout({ user, currentView, onViewChange, onLogout, syncError, appConfig = APP_CONFIG, children }) {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [terminatingSessions, setTerminatingSessions] = useState(false);
   const [productionWritesEnabled, setProductionWritesEnabledState] = useState(
     areProductionWritesEnabled
   );
+  const terminology = appConfig.terminology || {};
+  const contestLabel = terminology.contest || 'Contest';
+  const teamLabel = terminology.team || 'Team';
+  const juryLabel = terminology.jury || 'Jury';
   const views = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'setup', label: 'Setup', icon: '⚙️' },
-    { id: 'juries', label: 'Juries', icon: '👥' },
-    { id: 'teams', label: 'Teams', icon: '🎯' },
+    { id: 'setup', label: contestLabel, icon: '⚙️' },
+    { id: 'juries', label: `${juryLabel}s`, icon: '👥' },
+    { id: 'teams', label: `${teamLabel}s`, icon: '🎯' },
     { id: 'assignments', label: 'Assignments', icon: '📍' },
     { id: 'results', label: 'Results', icon: '📋' },
     { id: 'detailed-scores', label: 'Detailed Scores', icon: '📈' },
     { id: 'rankings', label: 'Rankings', icon: '🏆' },
     { id: 'exports', label: 'Exports', icon: '📥' },
-    { id: 'activity', label: 'Activity', icon: '🧾' }
+    { id: 'activity', label: 'Activity', icon: '🧾' },
+    { id: 'configuration', label: 'Configuration', icon: '🛠️' }
   ];
 
   const handleLogoutAll = async () => {
@@ -67,8 +73,8 @@ function AdminLayout({ user, currentView, onViewChange, onLogout, syncError, chi
       <header className="admin-header">
         <div className="header-content">
           <div className="header-left">
-            <h1>CCQC 2026</h1>
-            <p>Chatrapati Sambhajinagar Chapter</p>
+            <h1>{appConfig.appName}</h1>
+            <p>{appConfig.tagline}</p>
           </div>
           <div className="header-right">
             {isProductionDataMode && (
@@ -109,7 +115,7 @@ function AdminLayout({ user, currentView, onViewChange, onLogout, syncError, chi
               onClick={() => onViewChange(view.id)}
             >
               <span className="nav-icon">{view.icon}</span>
-              <span className="nav-label">{view.label=== 'Setup' ? 'Contest' : view.label}</span>
+              <span className="nav-label">{view.label}</span>
             </button>
           ))}
         </nav>

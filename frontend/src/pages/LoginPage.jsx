@@ -1,17 +1,17 @@
 import { useState } from "react";
 import "../styles/login.css";
+import { APP_CONFIG } from "../config/appConfig.js";
 
-function LoginPage({ onLogin, error }) {
+function LoginPage({ onLogin, error, appConfig = APP_CONFIG }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("admin");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await onLogin(username, password, role);
+      await onLogin(username, password);
     } finally {
       setLoading(false);
     }
@@ -21,31 +21,12 @@ function LoginPage({ onLogin, error }) {
     <div className="login-container">
       <div className="login-content">
         <div className="login-header">
-          <h1>CCQC 2026</h1>
-          <p>Chatrapati Sambhajinagar Chapter</p>
+          <h1>{appConfig.appName}</h1>
+          <p>{appConfig.tagline}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
           {error && <div className="alert alert-error mb-3">{error}</div>}
-
-          <div className="role-toggle">
-            <button
-              type="button"
-              className={`role-btn ${role === "admin" ? "active" : ""}`}
-              onClick={() => setRole("admin")}
-              disabled={loading}
-            >
-              Admin
-            </button>
-            <button
-              type="button"
-              className={`role-btn ${role === "jury" ? "active" : ""}`}
-              onClick={() => setRole("jury")}
-              disabled={loading}
-            >
-              Jury
-            </button>
-          </div>
 
           <div className="form-group">
             <label className="required">Username</label>

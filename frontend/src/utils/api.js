@@ -52,8 +52,8 @@ api.interceptors.response.use(
 
 // Auth
 export const authAPI = {
-  login: (username, password, role) => 
-    api.post('/auth/login', { username, password, role }),
+  login: (username, password) =>
+    api.post('/auth/login', { username, password }),
   verify: (token) => 
     api.post('/auth/verify', { token }),
   changePassword: (data) =>
@@ -109,6 +109,8 @@ export const evaluationsAPI = {
 // State
 export const stateAPI = {
   getSnapshot: () => api.get('/state/snapshot'),
+  getConfig: () => api.get('/config'),
+  updateConfig: (config) => api.put('/state/config', config),
   setActiveContest: (activeContestId) =>
     api.post('/state/active-contest', { activeContestId })
 };

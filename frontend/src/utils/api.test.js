@@ -35,7 +35,7 @@ describe('API clients', () => {
 
   it('exposes auth, contest, jury, team, assignment, evaluation and state methods', () => {
     const methods = [
-      ['login', ['u', 'p', 'admin'], '/auth/login'],
+      ['login', ['u', 'p'], '/auth/login'],
       ['verify', ['token'], '/auth/verify'],
       ['changePassword', [{ password: 'new' }], '/auth/change-password'],
       ['logout', [], '/auth/logout'],
